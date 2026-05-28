@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Генератор актов сдачи-приемки услуг</title>
+  <meta name="description" content="Генератор актов сдачи-приемки оказанных услуг для договоров Центрального офиса Русского Регистра">
+  <meta name="referrer" content="no-referrer">
+  <meta property="og:title" content="Генератор актов сдачи-приемки услуг">
+  <meta property="og:description" content="Акты сдачи-приемки оказанных услуг для договоров Центрального офиса Русского Регистра">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://acts.martsynkovskyi.ru/">
+  <meta property="og:image" content="https://acts.martsynkovskyi.ru/preview.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'none'; base-uri 'self'; form-action 'none'; object-src 'none'">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <style>
+    :root{
+      --ink:#071b3a;--ink2:#0b316b;--blue:#0b5fc7;--blue2:#063a8e;--sky:#eaf4ff;--ice:#f7fbff;--line:#c7d9ef;--muted:#5d7390;
+      --card:rgba(255,255,255,.88);--shadow:0 18px 46px rgba(8,55,116,.13);--soft:0 8px 24px rgba(8,55,116,.09);--radius:20px
+    }
+    *{box-sizing:border-box} html{background:#f3f8ff} body{margin:0;min-height:100vh;padding:0 0 12px;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--ink);background:radial-gradient(circle at 12% 0%,rgba(11,95,199,.16),transparent 30%),radial-gradient(circle at 88% 8%,rgba(115,179,246,.22),transparent 28%),linear-gradient(180deg,#fbfdff 0%,#eef6ff 100%)}
+    .app{width:min(1536px,100%);margin:0 auto}.shell{padding:0 26px}
+    .top{min-height:108px;margin:0;border:1px solid #b8d3f2;border-top:0;border-radius:0 0 18px 18px;background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(248,252,255,.94));box-shadow:0 12px 30px rgba(8,55,116,.12);display:grid;grid-template-columns:88px 1fr 430px 132px;gap:22px;align-items:center;padding:15px 30px;overflow:hidden;position:relative;backdrop-filter:blur(10px)}
+    .top:before{content:"";position:absolute;inset:auto -20px 0 auto;width:520px;height:96px;background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 620 130"><g fill="none" stroke="%230b5fc7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity=".32"><path d="M25 117h570"/><path d="M96 117V72h46v45M119 72V38M106 53h26"/><path d="M185 117V55h70v62M196 55l24-34 24 34"/><path d="M296 117V61h114v56M314 61q39-57 78 0M336 117V82h32v35"/><path d="M456 117V74h44v43M478 74V28M463 51h30"/><path d="M28 101q26-24 54 0M400 101q32-30 68 0M506 96q25-20 51 0"/></g></svg>') right bottom/contain no-repeat;pointer-events:none}
+    .top:after{content:"";position:absolute;right:610px;top:17px;width:64px;height:64px;border-radius:999px;background:radial-gradient(circle,rgba(11,95,199,.08),transparent 70%)}
+    .logo{width:72px;height:72px;border:1.5px solid rgba(11,95,199,.34);border-radius:22px;display:grid;place-items:center;background:linear-gradient(145deg,#fff,#eaf4ff);box-shadow:inset 0 1px 0 #fff,0 10px 24px rgba(11,95,199,.13);position:relative;z-index:1;color:var(--blue2);font-size:0}.logo:before{content:"";width:46px;height:46px;background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><g fill="none" stroke="%23063a8e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M32 8v48"/><path d="M21 18c0-6 5-10 11-10s11 4 11 10"/><path d="M18 32h28"/><path d="M13 43c7 7 31 7 38 0"/><path d="M18 52h28"/><path d="M25 23c-8 3-13 10-13 19"/><path d="M39 23c8 3 13 10 13 19"/></g></svg>') center/contain no-repeat}.logo:after{display:none}.brand{position:relative;z-index:1}.brand h1{margin:0;color:var(--blue2);font-size:38px;line-height:.95;font-weight:950;letter-spacing:-.035em;text-transform:uppercase;text-shadow:0 1px 0 #fff}.brand p{margin:11px 0 0;color:#183b68;font-size:15.5px;font-weight:520}.hero-icons{display:flex;justify-content:space-around;color:var(--blue);position:relative;z-index:1;gap:28px}.hero-icons svg{width:68px;height:68px;stroke:currentColor;fill:none;stroke-width:1.85;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 4px 6px rgba(11,95,199,.1))}.version{text-align:right;color:#073878;font-weight:780;line-height:1.42;position:relative;z-index:1;font-size:14px}
+    .grid{display:grid;grid-template-columns:44% 56%;gap:14px;margin-top:12px}.panel{background:var(--card);border:1px solid rgba(184,211,242,.9);border-radius:22px;box-shadow:var(--shadow);padding:18px 20px;backdrop-filter:blur(10px)}.title{display:flex;align-items:center;gap:10px;margin:0 0 15px;color:var(--blue2);font-size:17px;font-weight:900;text-transform:uppercase;letter-spacing:.01em}.title svg{width:22px;height:22px;stroke:var(--blue);fill:none;stroke-width:2}.form{display:grid;gap:9px}.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.row3{display:grid;grid-template-columns:1fr 130px 120px;gap:12px}.field label{display:block;margin:0 0 5px;color:#0b2e63;font-size:12px;font-weight:850}input,select,textarea{width:100%;border:1px solid #bfd0e5;border-radius:10px;background:rgba(255,255,255,.96);color:#07182f;font-family:inherit;font-size:14px;box-shadow:inset 0 1px 2px rgba(7,24,47,.04);outline:none;transition:border-color .18s,box-shadow .18s,transform .18s}input,select{height:34px;padding:0 11px}textarea{height:96px;min-height:78px;resize:vertical;padding:9px 11px;line-height:1.28}input:hover,select:hover,textarea:hover{border-color:#91b4df}input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(11,95,199,.12)}.executor-proxy{display:none;grid-template-columns:1fr 1fr;gap:12px}.executor-proxy.show{display:grid}.full{grid-column:1/-1}.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.btn{height:40px;border:1px solid #aac5e8;border-radius:11px;font-family:inherit;font-size:15px;font-weight:900;cursor:pointer;transition:.18s;background:linear-gradient(180deg,#fff,#f0f6fd);color:#0d3570;box-shadow:0 7px 16px rgba(8,55,116,.06)}.btn:hover{transform:translateY(-1px);box-shadow:0 12px 24px rgba(13,85,174,.16)}.btn.primary{background:linear-gradient(180deg,#0d67d6,#063e8c);color:#fff;border-color:#06439a}.note{margin-top:9px;color:#415d7e;font-size:12px;display:flex;gap:7px;align-items:center}.preview-panel{padding-bottom:18px}.paper-box{border:1px solid #d3e1f2;border-radius:14px;background:linear-gradient(180deg,#fff,#f9fcff);padding:10px;display:flex;justify-content:center;align-items:center;min-height:690px;overflow:hidden}.paper{width:min(100%,840px);aspect-ratio:1240/1754;background:#fff;box-shadow:0 5px 20px rgba(7,24,47,.13);border-radius:2px;overflow:hidden}canvas{display:block;width:100%;height:100%;background:white}.steps{margin-top:12px;border:1px solid rgba(184,211,242,.9);border-radius:20px;background:rgba(255,255,255,.74);box-shadow:var(--shadow);display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;padding:17px 20px;backdrop-filter:blur(10px)}.step{display:grid;grid-template-columns:72px 1fr;align-items:center;gap:12px;color:#244766;font-size:14px;line-height:1.35}.step svg{width:62px;height:62px;stroke:var(--blue);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 5px 8px rgba(11,95,199,.1))}.num{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:linear-gradient(180deg,#0d67d6,#06449a);color:#fff;font-weight:900;margin-right:8px}.step strong{color:#0c2d61}.footer{padding:12px 30px 0;color:#173c68;font-size:13px;text-align:left}.footer-center,.footer-right{display:none}.copyright{font-weight:500;color:#173c68}
+    @media(max-width:1150px){.top{grid-template-columns:70px 1fr 112px}.hero-icons{display:none}.grid{grid-template-columns:1fr}.paper-box{min-height:760px}.steps{grid-template-columns:1fr}.footer{text-align:center}.version{font-size:13px}.brand h1{font-size:34px}}@media(max-width:650px){.shell{padding:0 10px}.top{min-height:auto;grid-template-columns:58px 1fr;padding:13px;border-radius:0 0 16px 16px}.logo{width:56px;height:56px;border-radius:17px}.logo:before{width:36px;height:36px}.brand h1{font-size:27px}.brand p{font-size:13px;margin-top:7px}.version{display:none}.panel{padding:14px}.row2,.row3,.executor-proxy,.executor-proxy.show,.actions{grid-template-columns:1fr}.paper-box{min-height:auto;padding:6px}.steps{padding:12px}.footer{padding:10px 12px 0}}
+  </style>
+</head>
+<body>
+<main class="app">
+  <header class="top">
+    <div class="logo" aria-hidden="true">Я</div>
+    <div class="brand"><h1>Генератор актов</h1><p>для договоров Центрального офиса Русского Регистра</p></div>
+    <div class="hero-icons" aria-hidden="true">
+      <svg viewBox="0 0 64 64"><path d="M22 8h21l9 9v37a4 4 0 0 1-4 4H16a4 4 0 0 1-4-4V12a4 4 0 0 1 4-4h6"/><path d="M42 8v11h10"/><path d="M23 31l6 6 13-15"/><path d="M22 46h20"/><circle cx="48" cy="48" r="9"/><path d="M45 48l3 3 5-7"/></svg>
+      <svg viewBox="0 0 64 64"><path d="M23 28l8-8a7 7 0 0 1 10 0l3 3"/><path d="M20 36l8 8a8 8 0 0 0 11 0l7-7"/><path d="M9 24l10-10 11 11-10 10z"/><path d="M34 39l10 10 11-11-10-10"/><path d="M29 31l9 9"/><path d="M25 35l8 8"/></svg>
+      <svg viewBox="0 0 64 64"><path d="M18 7h27l9 9v40a3 3 0 0 1-3 3H18a3 3 0 0 1-3-3V10a3 3 0 0 1 3-3z"/><path d="M45 7v11h9"/><path d="M25 27h19M25 36h19M25 45h10"/><path d="M42 47l11-11 5 5-11 11-7 2z"/></svg>
+    </div>
+    <div class="version">Версия 1.0<br>(28.05.2026)</div>
+  </header>
+
+  <div class="shell">
+    <section class="grid">
+      <div class="panel">
+        <h2 class="title"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></svg>Данные</h2>
+        <div class="form">
+          <div class="field"><label for="executor">Исполнитель</label><select id="executor"><option value="">Выберите исполнителя</option><option value="rr">Ассоциация «Русский Регистр»</option><option value="rrms">ООО «РР МС»</option><option value="rrs">ООО «РРС»</option></select></div>
+          <div class="field"><label for="signingMode">Подписание со стороны Исполнителя</label><select id="signingMode"><option value="statute">Руководителем по Уставу</option><option value="proxy">Представителем по доверенности</option></select></div>
+          <div class="executor-proxy" id="executorProxyFields">
+            <div class="field"><label for="executorPosition">Должность представителя Исполнителя</label><input id="executorPosition" autocomplete="off"></div>
+            <div class="field"><label for="executorName">И.О. Фамилия представителя Исполнителя</label><input id="executorName" autocomplete="off"></div>
+            <div class="field full"><label for="executorBasis">Основание полномочий представителя Исполнителя</label><input id="executorBasis" autocomplete="off" placeholder="доверенность № ... от ..."></div>
+          </div>
+          <div class="row2"><div class="field"><label for="actDate">Дата акта</label><input id="actDate" type="date"></div><div class="field"><label for="city">Место составления акта</label><input id="city" autocomplete="off"></div></div>
+          <div class="field"><label for="customer">Краткое наименование Заказчика</label><input id="customer" autocomplete="off"></div>
+          <div class="row2"><div class="field"><label for="contractNumber">Номер договора</label><input id="contractNumber" autocomplete="off"></div><div class="field"><label for="contractDate">Дата заключения договора</label><input id="contractDate" type="date"></div></div>
+          <div class="row2"><div class="field"><label for="customerPosition">Должность представителя Заказчика</label><input id="customerPosition" autocomplete="off"></div><div class="field"><label for="customerName">И.О. Фамилия представителя Заказчика</label><input id="customerName" autocomplete="off"></div></div>
+          <div class="field"><label for="customerBasis">Основание полномочий представителя Заказчика</label><input id="customerBasis" autocomplete="off"></div>
+          <div class="field"><label for="servicePlace">Место оказания услуг</label><input id="servicePlace" autocomplete="off"></div>
+          <div class="row3"><div class="field"><label for="amount">Стоимость, руб.</label><input id="amount" inputmode="decimal" autocomplete="off"></div><div class="field"><label for="amountMode">Тип суммы</label><select id="amountMode"><option value="included">с НДС</option><option value="excluded">без НДС сверху</option></select></div><div class="field"><label for="vatRate">Ставка НДС</label><select id="vatRate"><option value="22">22%</option><option value="5">5%</option><option value="0">без НДС</option></select></div></div>
+          <div class="field"><label for="serviceName">Наименование оказанных услуг по договору</label><textarea id="serviceName"></textarea></div>
+        </div>
+        <div class="actions"><button class="btn primary" type="button" id="downloadPdfBtn">Скачать PDF</button><button class="btn" type="button" id="resetBtn">Очистить форму</button></div>
+        <div class="note">Данные сохраняются только в вашем браузере и никуда не передаются.</div>
+      </div>
+      <div class="panel preview-panel">
+        <h2 class="title"><svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>Предварительный просмотр</h2>
+        <div class="paper-box"><div class="paper"><canvas id="previewCanvas" width="1240" height="1754"></canvas></div></div>
+      </div>
+    </section>
+
+    <section class="steps">
+      <div class="step"><svg viewBox="0 0 64 64"><path d="M20 10h24l8 8v34H12V10h8"/><path d="M44 10v10h8M22 34l7 7 14-17"/></svg><div><span class="num">1</span><strong>Заполните реквизиты</strong><br>Укажите договор, заказчика, место оказания услуг и стоимость.</div></div>
+      <div class="step"><svg viewBox="0 0 64 64"><path d="M4 32s10-16 28-16 28 16 28 16-10 16-28 16S4 32 4 32z"/><circle cx="32" cy="32" r="8"/></svg><div><span class="num">2</span><strong>Проверьте предварительный просмотр</strong><br>Документ в окне соответствует будущему PDF.</div></div>
+      <div class="step"><svg viewBox="0 0 64 64"><path d="M18 8h24l8 8v40H18z"/><path d="M42 8v10h8"/><text x="24" y="39" font-family="Tahoma,Arial" font-size="12" font-weight="700" fill="#0d55ae">PDF</text></svg><div><span class="num">3</span><strong>Скачайте готовый PDF</strong><br>Файл создается напрямую, без окна печати браузера.</div></div>
+    </section>
+  </div>
+  <footer class="footer"><div class="copyright">© Александр Марцынковский</div><div class="footer-center"></div><div class="footer-right"></div></footer>
+</main>
+<script>
+(function(){
+'use strict';
+const storageKey='actsGeneratorV10';
+const canvas=document.getElementById('previewCanvas');
+const ctx=canvas.getContext('2d');
+const ids=['executor','signingMode','executorPosition','executorName','executorBasis','actDate','city','customer','contractNumber','contractDate','customerPosition','customerName','customerBasis','servicePlace','amount','amountMode','vatRate','serviceName'];
+const f=Object.fromEntries(ids.map(id=>[id,document.getElementById(id)]));
+const proxyBox=document.getElementById('executorProxyFields');
+let ready=false;
+const executors={
+  rr:{name:'Ассоциацией по сертификации "Русский Регистр",',gender:'именуемой в дальнейшем «Исполнитель», и',statuteIntro:'представитель Исполнителя, генеральный директор Ассоциации по сертификации "Русский Регистр" А.В. Владимирцев, действующий на основании Устава',sign:'А.В. Владимирцев'},
+  rrms:{name:'ООО «РР МС»,',gender:'именуемым в дальнейшем «Исполнитель», и',statuteIntro:'представитель Исполнителя, генеральный директор ООО "РР МС" Е.А. Владимирцева, действующая на основании Устава',sign:'Е.А. Владимирцева'},
+  rrs:{name:'ООО «РРС»,',gender:'именуемым в дальнейшем «Исполнитель», и',statuteIntro:'представитель Исполнителя, генеральный директор ООО "РРС" А.В. Владимирцев, действующий на основании Устава',sign:'А.В. Владимирцев'}
+};
+function val(k,fb='________________'){return (f[k].value||'').trim()||fb}
+function dateRu(v){if(!v)return '__.__.____';const p=v.split('-');return p.length===3?`${p[2]}.${p[1]}.${p[0]}`:'__.__.____'}
+function parseAmount(v){const n=Number(String(v||'').replace(/\s/g,'').replace(',','.').replace(/[^0-9.]/g,''));return Number.isFinite(n)?n:0}
+function r2(n){return Math.round((n+Number.EPSILON)*100)/100}
+const om=['','один','два','три','четыре','пять','шесть','семь','восемь','девять'],of=['','одна','две','три','четыре','пять','шесть','семь','восемь','девять'],te=['десять','одиннадцать','двенадцать','тринадцать','четырнадцать','пятнадцать','шестнадцать','семнадцать','восемнадцать','девятнадцать'],tn=['','','двадцать','тридцать','сорок','пятьдесят','шестьдесят','семьдесят','восемьдесят','девяносто'],hu=['','сто','двести','триста','четыреста','пятьсот','шестьсот','семьсот','восемьсот','девятьсот'];
+function pl(n,a){n=Math.abs(n)%100;let n1=n%10;if(n>10&&n<20)return a[2];if(n1>1&&n1<5)return a[1];if(n1===1)return a[0];return a[2]}
+function tri(n,g){let w=[],h=Math.floor(n/100),t=Math.floor(n%100/10),o=n%10;if(hu[h])w.push(hu[h]);if(t===1)w.push(te[o]);else{if(tn[t])w.push(tn[t]);let oo=g==='f'?of:om;if(oo[o])w.push(oo[o])}return w.join(' ')}
+function intWords(n){if(n===0)return'ноль';let u=[{f:['','',''],g:'m'},{f:['тысяча','тысячи','тысяч'],g:'f'},{f:['миллион','миллиона','миллионов'],g:'m'},{f:['миллиард','миллиарда','миллиардов'],g:'m'}],p=[],i=0;while(n>0&&i<u.length){let t=n%1000;if(t){let unit=u[i].f[0]?pl(t,u[i].f):'';p.unshift([tri(t,u[i].g),unit].filter(Boolean).join(' '))}n=Math.floor(n/1000);i++}return p.join(' ')}
+function cap(s){return s?s[0].toUpperCase()+s.slice(1):s}
+function splitMoney(a){a=r2(Math.max(0,a));let rub=Math.floor(a),kop=Math.round((a-rub)*100);if(kop===100){rub++;kop=0}return{rub,kop}}
+function moneyNum(a){return new Intl.NumberFormat('ru-RU',{minimumFractionDigits:2,maximumFractionDigits:2}).format(r2(a)).replace(/\u00A0/g,' ')}
+function moneyWords(a){const m=splitMoney(a);return `${moneyNum(a)} (${cap(intWords(m.rub))}) руб. ${String(m.kop).padStart(2,'0')} коп.`}
+function amountParts(){let entered=r2(parseAmount(f.amount.value)),rate=Number(f.vatRate.value||0),mode=f.amountMode.value,total=entered,vat=0,base=entered;if(rate>0){if(mode==='excluded'){vat=r2(entered*rate/100);total=r2(entered+vat);base=entered}else{vat=r2(entered*rate/(100+rate));base=r2(entered-vat)}}return{entered,total,vat,base,rate,mode}}
+function ex(){return executors[f.executor.value]||null}
+function executorIntro(){const e=ex();if(!e)return'представитель Исполнителя, ________________________________, действующий на основании __________________';if(f.signingMode.value==='proxy')return`представитель Исполнителя, ${val('executorPosition')} ${val('executorName')}, действующий на основании ${val('executorBasis')}`;return e.statuteIntro}
+function signer(){const e=ex();if(f.signingMode.value==='proxy')return val('executorName');return e?e.sign:'________________'}
+function font(sz,w='400'){ctx.font=`${w} ${sz}px Tahoma, Arial, sans-serif`;ctx.fillStyle='#000'}
+function text(t,x,y,o={}){font(o.size||18,o.weight||'400');ctx.textAlign=o.align||'left';ctx.textBaseline=o.base||'alphabetic';ctx.fillText(String(t),x,y)}
+function line(x1,y1,x2,y2,w=2){ctx.beginPath();ctx.lineWidth=w;ctx.strokeStyle='#000';ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke()}
+function wrap(s,max,sz=18,w='400'){font(sz,w);s=String(s||'').trim();if(!s)return[''];let out=[];for(const par of s.split(/\n+/)){let words=par.replace(/\s+/g,' ').trim().split(' '),ln='';for(const word of words){let test=ln?ln+' '+word:word;if(ctx.measureText(test).width<=max||!ln)ln=test;else{out.push(ln);ln=word}}if(ln)out.push(ln)}return out}
+function fitted(s,max,maxLines,start,min,w='400'){let sz=start,lines=wrap(s,max,sz,w);while(lines.length>maxLines&&sz>min){sz-=.5;lines=wrap(s,max,sz,w)}if(lines.length>maxLines){lines=lines.slice(0,maxLines);font(sz,w);let last=lines[maxLines-1];while(last.length>3&&ctx.measureText(last+'…').width>max)last=last.slice(0,-1);lines[maxLines-1]=last+'…'}return{lines,sz}}
+function drawFit(s,x,y,max,maxLines,start,min,lh,w='400'){const ft=fitted(s,max,maxLines,start,min,w);ft.lines.forEach((ln,i)=>text(ln,x,y+i*ft.sz*lh,{size:ft.sz,weight:w}));return y+ft.lines.length*ft.sz*lh}
+function center(lines,y,sz,w='700'){for(const ln of lines){text(ln,620,y,{size:sz,weight:w,align:'center'});y+=sz*1.23}return y}
+function under(t,x1,x2,y,sz=18,w='400'){line(x1,y+6,x2,y+6,2);text(t,(x1+x2)/2,y,{size:sz,weight:w,align:'center'})}
+function save(){if(!ready)return;let d={};ids.forEach(id=>d[id]=f[id].value);try{localStorage.setItem(storageKey,JSON.stringify(d))}catch(e){}}
+function load(){try{let raw=localStorage.getItem(storageKey);if(!raw)return;let d=JSON.parse(raw);ids.forEach(id=>{if(d[id]!==undefined)f[id].value=String(d[id])})}catch(e){}}
+function render(){proxyBox.classList.toggle('show',f.signingMode.value==='proxy');draw();save()}
+function draw(){const W=canvas.width,H=canvas.height,L=86,R=W-86;ctx.clearRect(0,0,W,H);ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);let y=76;const e=ex(),ap=amountParts();let eName=e?e.name:'________________,';let eGender=e?e.gender:'именуемым в дальнейшем «Исполнитель», и';
+ y=center(['АКТ сдачи-приемки оказанных услуг',`по договору №${val('contractNumber','________')} от ${dateRu(f.contractDate.value)} г. между`,eName,eGender,`${val('customer')},`,'именуемым в дальнейшем «Заказчик»'],y,22,'700');
+ y+=28;under(val('city'),L,500,y,20);under(dateRu(f.actDate.value),R-270,R,y,20);y+=58;
+ const intro=`Мы, нижеподписавшиеся, ${executorIntro()}, с одной стороны, и представитель Заказчика, ${val('customerPosition')} ${val('customer')} ${val('customerName')}, действующий на основании ${val('customerBasis')}, с другой стороны, составили настоящий Акт в том, что в соответствии с договором №${val('contractNumber','________')} от ${dateRu(f.contractDate.value)} г.`;
+ y=drawFit(intro,L,y,R-L,5,20,16,1.22,'400');y+=26;
+ text('Исполнитель',L,y,{size:20});under('оказал',L+325,L+520,y,20);text('порученные ему Заказчиком услуги:',L+535,y,{size:20});y+=34;
+ let serviceTop=y;if(val('serviceName',''))drawFit(val('serviceName',''),L,y,R-L,8,20,14,1.16,'400');y=serviceTop+178;line(L,y+4,R,y+4,2);y+=38;
+ text('Услуги оказаны',L,y,{size:20});under('в срок',L+190,L+375,y,20);text(', Заказчик',L+390,y,{size:20});under('принял',L+560,L+735,y,20);text('указанные услуги к оплате.',L+750,y,{size:20});y+=46;
+ text('Место оказания',L,y,{size:20});under(val('servicePlace'),L+190,R,y,20);y+=48;text('Рекламации',L,y,{size:20});under('отсутствуют',L+190,R,y,20);y+=58;
+ text('Расчёты между сторонами урегулированы, услуги оказаны на сумму:',L,y,{size:20});y+=32;
+ let moneyLine=ap.rate>0?`${moneyWords(ap.total)}, в том числе НДС ${ap.rate}% - ${moneyWords(ap.vat)}`:`${moneyWords(ap.total)}, НДС не облагается`;
+ y=drawFit(moneyLine,L,y,R-L,3,20,16,1.18,'700');y+=42;text('Настоящий Акт является основанием для взаиморасчетов.',L,y,{size:20});y+=38;text('Настоящий Акт составлен в двух экземплярах, по одному для каждой стороны.',L,y,{size:20});y+=72;
+ const col=(R-L-170)/2,c1=L+col/2,c2=R-col/2;text('Заказчик:',c1,y,{size:20,weight:'700',align:'center'});text('Исполнитель:',c2,y,{size:20,weight:'700',align:'center'});y+=70;line(L,y,L+col,y,2);line(R-col,y,R,y,2);const cn=fitted('/'+val('customerName')+'/',col,1,19,13,'400');text(cn.lines[0],c1,y+32,{size:cn.sz,align:'center'});const sn=fitted('/'+signer()+'/',col,1,19,13,'400');text(sn.lines[0],c2,y+32,{size:sn.sz,align:'center'})}
+function pdfBlobFromJpeg(jpeg,w,h){const bin=atob(jpeg.split(',')[1]);const img=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)img[i]=bin.charCodeAt(i);const pageW=595.28,pageH=841.89,parts=[],off=[];let len=0;const enc=new TextEncoder();function addS(s){let b=enc.encode(s);parts.push(b);len+=b.length}function addB(b){parts.push(b);len+=b.length}function obj(n,fn){off[n]=len;addS(`${n} 0 obj\n`);fn();addS('\nendobj\n')}addS('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');obj(1,()=>addS('<< /Type /Catalog /Pages 2 0 R >>'));obj(2,()=>addS('<< /Type /Pages /Kids [3 0 R] /Count 1 >>'));obj(3,()=>addS(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageW} ${pageH}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`));obj(4,()=>{addS(`<< /Type /XObject /Subtype /Image /Width ${w} /Height ${h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${img.length} >>\nstream\n`);addB(img);addS('\nendstream')});const content=`q\n${pageW} 0 0 ${pageH} 0 0 cm\n/Im0 Do\nQ`;obj(5,()=>addS(`<< /Length ${content.length} >>\nstream\n${content}\nendstream`));const xref=len;addS('xref\n0 6\n0000000000 65535 f \n');for(let i=1;i<=5;i++)addS(String(off[i]).padStart(10,'0')+' 00000 n \n');addS(`trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);return new Blob(parts,{type:'application/pdf'})}
+function download(blob,name){const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.rel='noopener';document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(url)},1000)}
+function downloadPdf(){draw();const jpeg=canvas.toDataURL('image/jpeg',.98);const blob=pdfBlobFromJpeg(jpeg,canvas.width,canvas.height);const n=val('contractNumber','akt').replace(/[^\wа-яА-Я.-]+/g,'_');download(blob,`akt_${n}.pdf`)}
+function reset(){try{localStorage.removeItem(storageKey)}catch(e){};ids.forEach(id=>{if(f[id].tagName==='SELECT')f[id].selectedIndex=0;else f[id].value=''});f.signingMode.value='statute';f.amountMode.value='included';f.vatRate.value='22';render()}
+ids.forEach(id=>{f[id].addEventListener('input',render);f[id].addEventListener('change',render)});document.getElementById('downloadPdfBtn').addEventListener('click',downloadPdf);document.getElementById('resetBtn').addEventListener('click',reset);load();ready=true;render();
+})();
+</script>
+</body>
+</html>
