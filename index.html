@@ -565,6 +565,261 @@
       .brand-mark img { width: 60px; height: 60px; }
       #previewCanvas { width: min(100%, 340px); }
     }
+  
+    /* === v26 responsive polish: desktop / tablet / mobile === */
+    html {
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    .wrap {
+      max-width: 1540px;
+    }
+
+    input, select, textarea, button {
+      font-family: "Manrope", Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .hero-copy {
+      max-width: min(720px, 52vw);
+    }
+
+    .hero h1 {
+      font-size: clamp(34px, 3.25vw, 56px);
+      letter-spacing: -0.028em;
+      text-wrap: balance;
+    }
+
+    .hero p {
+      font-size: clamp(15px, 1.1vw, 18px);
+      text-wrap: balance;
+    }
+
+    .layout {
+      grid-template-columns: minmax(390px, 42%) minmax(560px, 58%);
+    }
+
+    .card,
+    .hero,
+    .info {
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .paper-stage {
+      min-height: clamp(680px, calc(100vh - 230px), 1040px);
+    }
+
+    #previewCanvas {
+      width: min(100%, 820px);
+      max-height: calc(100vh - 300px);
+      object-fit: contain;
+    }
+
+    @media (min-width: 1600px) {
+      body { padding: 22px 18px; }
+      .wrap { max-width: 1660px; }
+      .hero { min-height: 126px; padding: 20px 34px; }
+      .brand-mark { width: 92px; height: 92px; }
+      .brand-mark img { width: 86px; height: 86px; }
+      .skyline { width: min(960px, 58%); }
+      .layout { grid-template-columns: minmax(430px, 40%) minmax(720px, 60%); }
+      .paper-stage { min-height: 900px; }
+      #previewCanvas { width: min(100%, 900px); max-height: 980px; }
+    }
+
+    @media (max-width: 1360px) {
+      .wrap { max-width: 1240px; }
+      .hero { gap: 20px; padding: 16px 22px; }
+      .brand-mark { width: 76px; height: 76px; }
+      .brand-mark img { width: 70px; height: 70px; }
+      .skyline { width: min(690px, 52%); }
+      .layout { grid-template-columns: minmax(380px, 44%) minmax(520px, 56%); }
+      .card-inner { padding: 18px; }
+      .paper-stage { min-height: 720px; }
+      #previewCanvas { width: min(100%, 720px); max-height: 760px; }
+    }
+
+    @media (max-width: 1180px) {
+      body { padding: 14px 12px; }
+      .wrap { max-width: 980px; }
+      .hero {
+        min-height: 116px;
+        grid-template-columns: auto 1fr;
+        padding: 16px 20px;
+      }
+      .hero-copy { max-width: min(620px, 68vw); }
+      .hero h1 { font-size: clamp(34px, 5.2vw, 48px); }
+      .skyline {
+        width: min(560px, 48%);
+        opacity: .46;
+      }
+      .layout {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+      .card-inner { padding: 18px; }
+      .preview-card { min-height: auto; }
+      .paper-stage {
+        min-height: 760px;
+        padding: 16px;
+      }
+      #previewCanvas {
+        width: min(100%, 700px);
+        max-height: none;
+      }
+      .info { grid-template-columns: 1fr 1fr 1fr; }
+    }
+
+    @media (max-width: 900px) {
+      .wrap { max-width: 760px; }
+      .hero {
+        overflow: hidden;
+        min-height: 132px;
+      }
+      .hero-copy { max-width: 100%; padding-right: 14%; }
+      .hero h1 { font-size: clamp(32px, 7vw, 44px); }
+      .hero p { font-size: 15px; max-width: 560px; }
+      .skyline {
+        width: 72%;
+        right: -16%;
+        opacity: .26;
+        -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.12) 18%, #000 46%, #000 100%);
+        mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.12) 18%, #000 46%, #000 100%);
+      }
+      .two,
+      .money-row {
+        grid-template-columns: 1fr 1fr;
+      }
+      .paper-stage { min-height: 690px; }
+      #previewCanvas { width: min(100%, 620px); }
+      .info { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 700px) {
+      body { padding: 10px; }
+      .hero {
+        grid-template-columns: 66px 1fr;
+        gap: 12px;
+        min-height: 112px;
+        padding: 14px;
+        border-radius: 16px;
+      }
+      .brand-mark { width: 62px; height: 62px; }
+      .brand-mark img { width: 58px; height: 58px; }
+      .hero-copy { padding-right: 0; }
+      .hero h1 {
+        font-size: clamp(28px, 8.2vw, 38px);
+        line-height: 1.02;
+        letter-spacing: -0.025em;
+      }
+      .hero p {
+        margin-top: 6px;
+        font-size: 13.5px;
+        line-height: 1.28;
+      }
+      .skyline {
+        position: relative;
+        grid-column: 1 / -1;
+        width: calc(100% + 28px);
+        height: 58px;
+        right: auto;
+        top: auto;
+        bottom: auto;
+        margin: 4px -14px -14px;
+        opacity: .82;
+        -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,.18) 0%, #000 35%, #000 100%);
+        mask-image: linear-gradient(180deg, rgba(0,0,0,.18) 0%, #000 35%, #000 100%);
+      }
+      .skyline img {
+        object-fit: cover;
+        object-position: center bottom;
+      }
+      .card { border-radius: 16px; }
+      .card-inner { padding: 14px; }
+      .card-title {
+        font-size: 20px;
+        margin-bottom: 13px;
+      }
+      .card-title svg {
+        width: 20px;
+        height: 20px;
+      }
+      .form-grid { gap: 9px; }
+      .two,
+      .money-row,
+      .actions {
+        grid-template-columns: 1fr;
+      }
+      label { font-size: 12.5px; margin-bottom: 5px; }
+      input, select { height: 42px; font-size: 14px; border-radius: 10px; }
+      textarea { min-height: 110px; font-size: 14px; border-radius: 10px; }
+      button {
+        width: 100%;
+        min-height: 50px;
+        font-size: 14px;
+        letter-spacing: .035em;
+      }
+      .note { align-items: flex-start; font-size: 12px; }
+      .paper-stage {
+        min-height: auto;
+        padding: 10px;
+        overflow-x: auto;
+        justify-content: flex-start;
+        -webkit-overflow-scrolling: touch;
+      }
+      #previewCanvas {
+        width: 100%;
+        min-width: 330px;
+        max-width: 100%;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, .16);
+      }
+      .footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px 4px 0;
+      }
+      .footer-mark { width: 28px; height: 28px; font-size: 16px; }
+    }
+
+    @media (max-width: 420px) {
+      body { padding: 8px; }
+      .hero {
+        grid-template-columns: 56px 1fr;
+        gap: 10px;
+        padding: 12px;
+      }
+      .brand-mark { width: 54px; height: 54px; }
+      .brand-mark img { width: 50px; height: 50px; }
+      .hero h1 { font-size: 27px; }
+      .hero p { font-size: 12.5px; }
+      .skyline {
+        width: calc(100% + 24px);
+        height: 52px;
+        margin: 2px -12px -12px;
+      }
+      .card-inner { padding: 12px; }
+      .paper-stage { padding: 8px; }
+      #previewCanvas { min-width: 310px; }
+      .footer { font-size: 12px; }
+    }
+
+    @media (max-width: 360px) {
+      .hero h1 { font-size: 24px; }
+      .hero p { font-size: 12px; }
+      #previewCanvas { min-width: 292px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: .001ms !important;
+      }
+    }
+
   </style>
 </head>
 
