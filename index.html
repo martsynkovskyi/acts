@@ -3,27 +3,108 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Генератор актов сдачи-приемки</title>
-  <meta name="description" content="Генератор актов сдачи-приемки для договоров Центрального офиса Русского Регистра">
+  <title>Конструктор актов сдачи-приемки</title>
+  <meta name="description" content="Конструктор актов сдачи-приемки для договоров Центрального офиса Русского Регистра">
   <meta name="referrer" content="strict-origin-when-cross-origin">
 
-  <meta property="og:title" content="Генератор актов">
+  <meta property="og:title" content="Конструктор актов">
   <meta property="og:description" content="Для договоров Центрального офиса Русского Регистра">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://acts.martsynkovskyi.ru/">
-  <meta property="og:image" content="https://acts.martsynkovskyi.ru/preview.svg">
-  <meta property="og:image:type" content="image/svg+xml">
+  <meta property="og:image" content="https://acts.martsynkovskyi.ru/preview.png">
+  <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Генератор актов">
+  <meta name="twitter:title" content="Конструктор актов">
   <meta name="twitter:description" content="Для договоров Центрального офиса Русского Регистра">
-  <meta name="twitter:image" content="https://acts.martsynkovskyi.ru/preview.svg">
+  <meta name="twitter:image" content="https://acts.martsynkovskyi.ru/preview.png">
 
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'none'; base-uri 'self'; form-action 'none'">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
 
   <style>
+
+    @font-face {
+      font-family: 'Manrope';
+      src: url('./fonts/manrope-cyrillic-400-normal.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+      unicode-range: U+0301, U+0400-045F, U+0490-0491, U+2116;
+    }
+    @font-face {
+      font-family: 'Manrope';
+      src: url('./fonts/manrope-cyrillic-500-normal.woff2') format('woff2');
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+      unicode-range: U+0301, U+0400-045F, U+0490-0491, U+2116;
+    }
+    @font-face {
+      font-family: 'Manrope';
+      src: url('./fonts/manrope-cyrillic-600-normal.woff2') format('woff2');
+      font-weight: 600;
+      font-style: normal;
+      font-display: swap;
+      unicode-range: U+0301, U+0400-045F, U+0490-0491, U+2116;
+    }
+    @font-face {
+      font-family: 'Manrope';
+      src: url('./fonts/manrope-cyrillic-700-normal.woff2') format('woff2');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+      unicode-range: U+0301, U+0400-045F, U+0490-0491, U+2116;
+    }
+    @font-face {
+      font-family: 'Manrope';
+      src: url('./fonts/manrope-cyrillic-800-normal.woff2') format('woff2');
+      font-weight: 800;
+      font-style: normal;
+      font-display: swap;
+      unicode-range: U+0301, U+0400-045F, U+0490-0491, U+2116;
+    }
+    @font-face {
+      font-family: 'Manrope';
+      src: url('./fonts/manrope-latin-400-normal.woff2') format('woff2');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+    @font-face {
+      font-family: 'Manrope';
+      src: url('./fonts/manrope-latin-500-normal.woff2') format('woff2');
+      font-weight: 500;
+      font-style: normal;
+      font-display: swap;
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+    @font-face {
+      font-family: 'Manrope';
+      src: url('./fonts/manrope-latin-600-normal.woff2') format('woff2');
+      font-weight: 600;
+      font-style: normal;
+      font-display: swap;
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+    @font-face {
+      font-family: 'Manrope';
+      src: url('./fonts/manrope-latin-700-normal.woff2') format('woff2');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
+    @font-face {
+      font-family: 'Manrope';
+      src: url('./fonts/manrope-latin-800-normal.woff2') format('woff2');
+      font-weight: 800;
+      font-style: normal;
+      font-display: swap;
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+    }
     :root {
       --bg: #f5f8fc;
       --card: #ffffff;
@@ -42,7 +123,7 @@
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: "Manrope", Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       color: var(--text);
       background:
         radial-gradient(circle at 12% 0, rgba(37, 99, 235, .16), transparent 32%),
@@ -57,119 +138,120 @@
     }
 
     .hero {
-      min-height: 148px;
+      min-height: 112px;
       margin-bottom: 16px;
-      border: 1px solid rgba(255,255,255,.22);
-      border-radius: 24px;
-      background: linear-gradient(135deg, #081532 0%, #1747b8 56%, #31b6e8 100%);
-      box-shadow: 0 18px 46px rgba(15, 23, 42, .16);
+      border: 1px solid rgba(37, 99, 235, .18);
+      border-radius: 18px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.98), rgba(248,252,255,.96)),
+        radial-gradient(circle at 88% 4%, rgba(37,99,235,.10), transparent 34%);
+      box-shadow: 0 10px 28px rgba(15, 23, 42, .075), inset 0 -1px 0 rgba(37,99,235,.08);
       overflow: hidden;
       display: grid;
-      grid-template-columns: auto 1fr auto;
-      gap: 22px;
+      grid-template-columns: auto minmax(360px, 1fr);
+      gap: 28px;
       align-items: center;
-      padding: 24px 30px;
+      padding: 18px 28px;
       position: relative;
-      color: #fff;
+      color: #0c347a;
     }
 
     .hero::before {
       content: "";
       position: absolute;
-      right: 260px;
-      top: -96px;
-      width: 260px;
-      height: 260px;
-      border-radius: 50%;
-      background: rgba(255,255,255,.12);
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 3px;
+      background: linear-gradient(90deg, rgba(37,99,235,.14), rgba(37,99,235,.34), rgba(56,189,248,.16));
     }
 
     .hero::after {
       content: "";
       position: absolute;
-      right: -80px;
-      bottom: -120px;
-      width: 340px;
-      height: 340px;
-      border-radius: 50%;
-      border: 1px solid rgba(255,255,255,.18);
-      background: radial-gradient(circle, rgba(255,255,255,.12), transparent 62%);
+      inset: 0;
+      background:
+        radial-gradient(circle at 12% 0%, rgba(37,99,235,.08), transparent 28%),
+        radial-gradient(circle at 68% 0%, rgba(56,189,248,.08), transparent 26%);
       pointer-events: none;
     }
 
     .brand-mark {
-      width: 72px;
-      height: 72px;
-      border-radius: 22px;
-      background: rgba(255,255,255,.16);
-      border: 1px solid rgba(255,255,255,.26);
+      width: 82px;
+      height: 82px;
+      border-radius: 50%;
+      background: #fff;
+      border: 1px solid rgba(37,99,235,.10);
       display: grid;
       place-items: center;
-      color: #fff;
-      box-shadow: 0 18px 34px rgba(2, 8, 23, .18);
-      backdrop-filter: blur(10px);
-      z-index: 1;
+      z-index: 2;
+      box-shadow: 0 14px 28px rgba(37,99,235,.10);
+      overflow: hidden;
+      flex: 0 0 auto;
     }
 
-    .brand-mark svg,
-    .mini-icons svg {
-      fill: none;
-      stroke: currentColor;
-      stroke-linecap: round;
-      stroke-linejoin: round;
+    .brand-mark img {
+      width: 76px;
+      height: 76px;
+      display: block;
+      object-fit: contain;
     }
 
-    .brand-mark svg {
-      width: 42px;
-      height: 42px;
-      stroke-width: 2;
-    }
 
-    .hero-copy {
-      z-index: 1;
-    }
+    .hero-copy { z-index: 2; position: relative; }
 
     .hero h1 {
       margin: 0;
-      font-size: clamp(36px, 4.4vw, 58px);
-      line-height: .96;
-      letter-spacing: -.055em;
-      font-weight: 950;
-      color: #fff;
-      text-wrap: balance;
+      font-size: clamp(38px, 3.55vw, 52px);
+      line-height: .98;
+      letter-spacing: -0.035em;
+      font-weight: 800;
+      color: #0b3477;
+      text-transform: uppercase;
     }
 
     .hero p {
-      margin: 10px 0 0;
+      margin: 8px 0 0;
       max-width: 760px;
-      color: rgba(255, 255, 255, .86);
-      font-size: 17px;
-      line-height: 1.45;
-      font-weight: 650;
+      color: #153b73;
+      font-size: 16px;
+      line-height: 1.35;
+      font-weight: 600;
     }
 
-    .mini-icons {
-      display: grid;
-      grid-template-columns: repeat(3, 76px);
-      gap: 14px;
-      color: #fff;
+
+    .skyline {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: min(860px, 58%);
+      height: 100%;
       z-index: 1;
+      overflow: hidden;
+      pointer-events: none;
+      -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.18) 9%, #000 24%, #000 100%);
+      mask-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,.18) 9%, #000 24%, #000 100%);
     }
 
-    .mini-icons svg {
-      width: 76px;
-      height: 76px;
-      padding: 17px;
-      border-radius: 22px;
-      background: rgba(255,255,255,.14);
-      border: 1px solid rgba(255,255,255,.24);
-      stroke-width: 1.8;
-      opacity: .98;
-      box-shadow: 0 12px 30px rgba(2,8,23,.13);
-      backdrop-filter: blur(8px);
+    .skyline::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(248,252,255,.10) 45%, rgba(255,255,255,.18) 100%);
+      z-index: 2;
+      pointer-events: none;
     }
 
-    .version { display: none; }
+    .skyline img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      object-position: center bottom;
+      filter: saturate(1.05) contrast(1.04);
+      opacity: .96;
+    }
 
     .layout {
       display: grid;
@@ -195,7 +277,7 @@
       gap: 12px;
       color: var(--blue-dark);
       font-size: 24px;
-      font-weight: 950;
+      font-weight: 800;
       letter-spacing: -.03em;
     }
 
@@ -285,25 +367,48 @@
     }
 
     button {
-      border: 0;
-      border-radius: 12px;
-      padding: 12px 16px;
+      min-height: 52px;
+      border: 1px solid rgba(16, 82, 171, .22);
+      border-radius: 10px;
+      padding: 12px 20px;
       cursor: pointer;
-      background: #eef2f7;
-      color: #111827;
-      font-size: 15px;
-      font-weight: 850;
+      background: linear-gradient(180deg, rgba(255,255,255,.98), rgba(247,251,255,.96));
+      color: #0b3477;
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: .045em;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 8px 18px rgba(15, 23, 42, .05);
+      transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease;
+    }
+
+    button svg {
+      width: 24px;
+      height: 24px;
+      flex: 0 0 auto;
+      display: block;
     }
 
     button.green {
-      background: linear-gradient(135deg, #1f8f55, #34a86b);
+      border-color: rgba(11, 52, 119, .28);
+      background: linear-gradient(180deg, #145fc4 0%, #0b459d 48%, #08357e 100%);
       color: #fff;
-      box-shadow: 0 10px 22px rgba(35,136,76,.18);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.20), 0 12px 24px rgba(13, 71, 161, .24);
     }
+
+    button.green .word-icon .doc { fill: rgba(255,255,255,.94); }
+    button.green .word-icon .tile { fill: #ffffff; }
+    button.green .word-icon .w { fill: #0c3f91; }
+    button.reset svg { stroke: currentColor; fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 
     button:hover {
       transform: translateY(-1px);
-      box-shadow: 0 10px 22px rgba(15,23,42,.10);
+      border-color: rgba(16,82,171,.32);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 12px 24px rgba(15,23,42,.11);
     }
 
     button:active { transform: translateY(0); }
@@ -447,7 +552,7 @@
       .paper-stage { min-height: 760px; }
       .info { grid-template-columns: 1fr; }
       .hero { grid-template-columns: auto 1fr; min-height: 124px; }
-      .mini-icons, .version { display: none; }
+      .skyline { display: none; }
       #previewCanvas { width: min(100%, 680px); }
     }
 
@@ -456,6 +561,8 @@
       .two, .money-row, .actions { grid-template-columns: 1fr; }
       .paper-stage { min-height: 520px; }
       .hero { padding: 12px; }
+      .brand-mark { width: 64px; height: 64px; }
+      .brand-mark img { width: 60px; height: 60px; }
       #previewCanvas { width: min(100%, 340px); }
     }
   </style>
@@ -465,18 +572,15 @@
   <main class="wrap">
     <section class="hero">
       <div class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 48 48"><path d="M15 6h14l7 7v29H15z"/><path d="M29 6v8h7"/><path d="M20 23h13M20 29h13M20 35h8"/></svg>
+        <img src="rr-logo.png" alt="">
       </div>
       <div class="hero-copy">
-        <h1>Генератор актов сдачи-приемки</h1>
+        <h1>Конструктор актов</h1>
         <p>для договоров Центрального офиса Русского Регистра</p>
       </div>
-      <div class="mini-icons" aria-hidden="true">
-        <svg viewBox="0 0 48 48"><path d="M14 7h15l7 7v27H14z"/><path d="M29 7v8h7"/><path d="M19 23h14M19 29h14M19 35h9"/></svg>
-        <svg viewBox="0 0 48 48"><path d="M6 25s7-10 18-10 18 10 18 10-7 10-18 10S6 25 6 25z"/><circle cx="24" cy="25" r="5"/></svg>
-        <svg viewBox="0 0 48 48"><path d="M12 24l8 8 17-18"/><path d="M9 9h30v30H9z"/></svg>
+      <div class="skyline" aria-hidden="true">
+        <img src="spb-silhouette.png" alt="">
       </div>
-      <div class="version"></div>
     </section>
 
     <div class="layout">
@@ -578,8 +682,22 @@
           </div>
 
           <div class="actions">
-            <button class="green" type="button" id="downloadPdfBtn">Скачать PDF</button>
-            <button type="button" id="resetBtn">Очистить форму</button>
+            <button class="green" type="button" id="downloadDocxBtn" aria-label="Скачать DOCX">
+              <svg class="word-icon" viewBox="0 0 32 32" aria-hidden="true">
+                <path class="doc" d="M12 3h11l5 5v20H12z"/>
+                <path d="M23 3v6h5" fill="none" stroke="rgba(12,63,145,.48)" stroke-width="1.5"/>
+                <rect class="tile" x="4" y="8" width="15" height="16" rx="2.2"/>
+                <path class="w" d="M7.1 12.2h2.1l1.1 6.1 1.5-6.1h2l1.4 6.1 1.1-6.1h2l-2 9.2h-2.1l-1.4-5.8-1.5 5.8H9.2z"/>
+              </svg>
+              <span>Скачать DOCX</span>
+            </button>
+            <button class="reset" type="button" id="resetBtn" aria-label="Очистить форму">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M20 6v5h-5"/>
+                <path d="M19 11a7 7 0 1 0 1.2 4.8"/>
+              </svg>
+              <span>Очистить форму</span>
+            </button>
           </div>
 
           <div class="note">
@@ -602,25 +720,11 @@
       </section>
     </div>
 
-    <section class="info">
-      <div class="info-item">
-        <div class="info-icon">1</div>
-        <div><strong>Заполните реквизиты</strong>Укажите данные договора, заказчика, место оказания услуг и стоимость с НДС.</div>
-      </div>
-      <div class="info-item">
-        <div class="info-icon">2</div>
-        <div><strong>Проверьте предпросмотр</strong>Убедитесь, что акт сформирован корректно. Предпросмотр соответствует итоговому PDF.</div>
-      </div>
-      <div class="info-item">
-        <div class="info-icon">3</div>
-        <div><strong>Скачайте PDF</strong>Нажмите “Скачать PDF” и получите готовый файл без дополнительной печати.</div>
-      </div>
-    </section>
 
     <footer class="footer">
       <div class="footer-item">
         <div class="footer-mark">©</div>
-        <div class="footer-text">Версия 1.0 (28.05.2026)<br>Александр Марцынковский</div>
+        <div class="footer-text">Версия 1.1 (31.05.2026)<br>Александр Марцынковский</div>
       </div>
       <div class="footer-item">
         <div class="footer-mark">♡</div>
@@ -1089,6 +1193,214 @@
       downloadBlob(pdfBlob, `akt_${contract}.pdf`);
     }
 
+
+
+    function xmlEscape(value) {
+      return String(value ?? '').replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&apos;'
+      }[char]));
+    }
+
+    function safeFilePart(value, fallback = 'akt') {
+      return String(value || fallback).trim().replace(/[^a-zA-Z0-9а-яА-Я._-]/g, '_') || fallback;
+    }
+
+    function makeCrcTable() {
+      const table = new Uint32Array(256);
+      for (let n = 0; n < 256; n++) {
+        let c = n;
+        for (let k = 0; k < 8; k++) c = (c & 1) ? (0xedb88320 ^ (c >>> 1)) : (c >>> 1);
+        table[n] = c >>> 0;
+      }
+      return table;
+    }
+
+    const crcTable = makeCrcTable();
+
+    function crc32(bytes) {
+      let c = 0xffffffff;
+      for (let i = 0; i < bytes.length; i++) c = crcTable[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);
+      return (c ^ 0xffffffff) >>> 0;
+    }
+
+    function dosDateTime(date = new Date()) {
+      const time = (date.getHours() << 11) | (date.getMinutes() << 5) | Math.floor(date.getSeconds() / 2);
+      const day = Math.max(1, date.getDate());
+      const month = date.getMonth() + 1;
+      const year = Math.max(1980, date.getFullYear()) - 1980;
+      return { time, date: (year << 9) | (month << 5) | day };
+    }
+
+    function pushU16(arr, value) { arr.push(value & 255, (value >>> 8) & 255); }
+    function pushU32(arr, value) { arr.push(value & 255, (value >>> 8) & 255, (value >>> 16) & 255, (value >>> 24) & 255); }
+
+    function makeZip(files) {
+      const encoder = new TextEncoder();
+      const chunks = [];
+      const central = [];
+      let offset = 0;
+      const stamp = dosDateTime();
+
+      files.forEach(file => {
+        const nameBytes = encoder.encode(file.name);
+        const dataBytes = encoder.encode(file.content);
+        const crc = crc32(dataBytes);
+        const local = [];
+        pushU32(local, 0x04034b50);
+        pushU16(local, 20);
+        pushU16(local, 0x0800);
+        pushU16(local, 0);
+        pushU16(local, stamp.time);
+        pushU16(local, stamp.date);
+        pushU32(local, crc);
+        pushU32(local, dataBytes.length);
+        pushU32(local, dataBytes.length);
+        pushU16(local, nameBytes.length);
+        pushU16(local, 0);
+        chunks.push(new Uint8Array(local), nameBytes, dataBytes);
+
+        const c = [];
+        pushU32(c, 0x02014b50);
+        pushU16(c, 20);
+        pushU16(c, 20);
+        pushU16(c, 0x0800);
+        pushU16(c, 0);
+        pushU16(c, stamp.time);
+        pushU16(c, stamp.date);
+        pushU32(c, crc);
+        pushU32(c, dataBytes.length);
+        pushU32(c, dataBytes.length);
+        pushU16(c, nameBytes.length);
+        pushU16(c, 0);
+        pushU16(c, 0);
+        pushU16(c, 0);
+        pushU16(c, 0);
+        pushU32(c, 0);
+        pushU32(c, offset);
+        central.push(new Uint8Array(c), nameBytes);
+        offset += local.length + nameBytes.length + dataBytes.length;
+      });
+
+      const centralOffset = offset;
+      const centralSize = central.reduce((sum, part) => sum + part.length, 0);
+      const end = [];
+      pushU32(end, 0x06054b50);
+      pushU16(end, 0);
+      pushU16(end, 0);
+      pushU16(end, files.length);
+      pushU16(end, files.length);
+      pushU32(end, centralSize);
+      pushU32(end, centralOffset);
+      pushU16(end, 0);
+      return new Blob([...chunks, ...central, new Uint8Array(end)], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+    }
+
+    function wText(value) {
+      return `<w:r><w:t xml:space="preserve">${xmlEscape(value)}</w:t></w:r>`;
+    }
+
+    function wRun(value, bold = false) {
+      return `<w:r>${bold ? '<w:rPr><w:b/></w:rPr>' : ''}<w:t xml:space="preserve">${xmlEscape(value)}</w:t></w:r>`;
+    }
+
+    function wRunStyled(value, opts = {}) {
+      const size = opts.size || 22;
+      const bold = opts.bold ? '<w:b/>' : '';
+      const underline = opts.underline ? '<w:u w:val="single"/>' : '';
+      return `<w:r><w:rPr><w:rFonts w:ascii="Tahoma" w:hAnsi="Tahoma" w:cs="Tahoma"/><w:sz w:val="${size}"/><w:szCs w:val="${size}"/>${bold}${underline}</w:rPr><w:t xml:space="preserve">${xmlEscape(value)}</w:t></w:r>`;
+    }
+
+    function wParagraphRuns(runs, opts = {}) {
+      const align = opts.align ? `<w:jc w:val="${opts.align}"/>` : '';
+      const spacing = `<w:spacing w:before="${opts.before || 0}" w:after="${opts.after ?? 80}" w:line="${opts.line || 240}" w:lineRule="auto"/>`;
+      const indent = opts.indent ? `<w:ind w:firstLine="${opts.indent}"/>` : '';
+      return `<w:p><w:pPr>${align}${spacing}${indent}</w:pPr>${runs.join('')}</w:p>`;
+    }
+
+    function wParagraph(text, opts = {}) {
+      const align = opts.align ? `<w:jc w:val="${opts.align}"/>` : '';
+      const spacing = `<w:spacing w:before="${opts.before || 0}" w:after="${opts.after ?? 80}" w:line="${opts.line || 240}" w:lineRule="auto"/>`;
+      const indent = opts.indent ? `<w:ind w:firstLine="${opts.indent}"/>` : '';
+      const size = opts.size || 22;
+      const bold = opts.bold ? '<w:b/>' : '';
+      const children = String(text || '').split('\n').map((part, i) => `${i ? '<w:br/>' : ''}<w:t xml:space="preserve">${xmlEscape(part)}</w:t>`).join('');
+      return `<w:p><w:pPr>${align}${spacing}${indent}<w:rPr><w:rFonts w:ascii="Tahoma" w:hAnsi="Tahoma" w:cs="Tahoma"/><w:sz w:val="${size}"/><w:szCs w:val="${size}"/>${bold}</w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Tahoma" w:hAnsi="Tahoma" w:cs="Tahoma"/><w:sz w:val="${size}"/><w:szCs w:val="${size}"/>${bold}</w:rPr>${children}</w:r></w:p>`;
+    }
+
+    function lineCell(text = '', width = 2500, align = 'center') {
+      return `<w:tc><w:tcPr><w:tcW w:w="${width}" w:type="dxa"/><w:tcBorders><w:top w:val="nil"/><w:left w:val="nil"/><w:bottom w:val="single" w:sz="8" w:space="0" w:color="000000"/><w:right w:val="nil"/></w:tcBorders></w:tcPr>${wParagraph(text, { align, after: 0, line: 220, size: 22 })}</w:tc>`;
+    }
+
+    function plainCell(content, width, align = 'left') {
+      const body = Array.isArray(content) ? content.join('') : wParagraph(content, { align, after: 0, line: 220, size: 22 });
+      return `<w:tc><w:tcPr><w:tcW w:w="${width}" w:type="dxa"/><w:tcBorders><w:top w:val="nil"/><w:left w:val="nil"/><w:bottom w:val="nil"/><w:right w:val="nil"/></w:tcBorders></w:tcPr>${body}</w:tc>`;
+    }
+
+    function makeActDocxXml() {
+      const ex = getExecutor();
+      const total = round2(parseAmount(fields.amount.value));
+      const vat = calculateVatIncluded(total, ex.vatRate);
+      const signer = typeof ex.signName === 'function' ? ex.signName() : ex.signName;
+      const customerName = v('customerName', '________________');
+      const service = v('serviceName', '');
+      const intro = `Мы, нижеподписавшиеся, ${ex.intro()}, с одной стороны, и представитель Заказчика, ${v('customerPosition', '________________')} ${v('customer', '________________')} ${customerName}, действующий на основании ${v('customerBasis', '________________')}, с другой стороны, составили настоящий Акт в том, что в соответствии с договором №${v('contractNumber', '________')} от ${dateRu(fields.contractDate.value)} г.`;
+      const money = `${moneyWordsExcel(total)}, в том числе НДС ${ex.vatRate}% - ${moneyWordsExcel(vat)}`;
+      const serviceParas = service ? service.split('\n').map(part => wParagraph(part, { align: 'both', after: 30, line: 215, size: 20 })).join('') : wParagraph('', { after: 0, size: 20 });
+
+      return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<w:body>
+${wParagraph('АКТ сдачи-приемки оказанных услуг', { align: 'center', bold: true, after: 0, line: 210, size: 21 })}
+${wParagraph(`по договору №${v('contractNumber', '________')} от ${dateRu(fields.contractDate.value)} г. между`, { align: 'center', bold: true, after: 0, line: 210, size: 21 })}
+${wParagraph(ex.headerName, { align: 'center', bold: true, after: 0, line: 210, size: 21 })}
+${wParagraph(ex.genderLine, { align: 'center', bold: true, after: 0, line: 210, size: 21 })}
+${wParagraph(`${v('customer', '________________')},`, { align: 'center', bold: true, after: 0, line: 210, size: 21 })}
+${wParagraph('именуемым в дальнейшем «Заказчик»', { align: 'center', bold: true, after: 220, line: 210, size: 21 })}
+<w:tbl><w:tblPr><w:tblW w:w="10000" w:type="dxa"/><w:tblLayout w:type="fixed"/><w:tblBorders><w:top w:val="nil"/><w:left w:val="nil"/><w:bottom w:val="nil"/><w:right w:val="nil"/><w:insideH w:val="nil"/><w:insideV w:val="nil"/></w:tblBorders></w:tblPr><w:tr>${lineCell(v('city', '________________'), 3600)}${plainCell('', 2600)}${lineCell(dateRu(fields.actDate.value), 2800)}</w:tr></w:tbl>
+${wParagraph(intro, { align: 'both', indent: 567, before: 180, after: 120, line: 220, size: 20 })}
+${wParagraphRuns([wRunStyled('Исполнитель ', { size: 20 }), wRunStyled('                 оказал                 ', { size: 20, underline: true }), wRunStyled(' порученные ему Заказчиком услуги:', { size: 20 })], { after: 70, line: 220 })}
+${serviceParas}
+<w:p><w:pPr><w:pBdr><w:bottom w:val="single" w:sz="8" w:space="1" w:color="000000"/></w:pBdr><w:spacing w:after="120"/></w:pPr></w:p>
+${wParagraphRuns([wRunStyled('Услуги оказаны ', { size: 20 }), wRunStyled('          в срок          ', { size: 20, underline: true }), wRunStyled(', Заказчик ', { size: 20 }), wRunStyled('          принял          ', { size: 20, underline: true }), wRunStyled(' указанные услуги к оплате.', { size: 20 })], { after: 100, line: 220 })}
+${wParagraphRuns([wRunStyled('Место оказания ', { size: 20 }), wRunStyled('                                      ' + v('servicePlace', '________________') + '                                      ', { size: 20, underline: true })], { after: 100, line: 220 })}
+${wParagraphRuns([wRunStyled('Рекламации ', { size: 20 }), wRunStyled('                                      отсутствуют                                      ', { size: 20, underline: true })], { after: 180, line: 220 })}
+${wParagraph('Расчёты между сторонами урегулированы, услуги оказаны на сумму:', { after: 70, line: 220, size: 20 })}
+${wParagraph(money, { bold: true, align: 'both', after: 170, line: 220, size: 20 })}
+${wParagraph('Настоящий Акт является основанием для взаиморасчетов.', { after: 110, line: 220, size: 20 })}
+${wParagraph('Настоящий Акт составлен в двух экземплярах, по одному для каждой стороны.', { after: 320, line: 220, size: 20 })}
+<w:tbl><w:tblPr><w:tblW w:w="10000" w:type="dxa"/><w:tblLayout w:type="fixed"/><w:tblBorders><w:top w:val="nil"/><w:left w:val="nil"/><w:bottom w:val="nil"/><w:right w:val="nil"/><w:insideH w:val="nil"/><w:insideV w:val="nil"/></w:tblBorders></w:tblPr>
+<w:tr>${plainCell([wParagraph('Заказчик:', { align: 'center', bold: true, after: 360, line: 220, size: 20 })], 4700)}${plainCell('', 600)}${plainCell([wParagraph('Исполнитель:', { align: 'center', bold: true, after: 360, line: 220, size: 20 })], 4700)}</w:tr>
+<w:tr>${plainCell([wParagraph('________________________ /' + customerName + '/', { align: 'center', after: 0, line: 220, size: 20 })], 4700)}${plainCell('', 600)}${plainCell([wParagraph('________________________ /' + signer + '/', { align: 'center', after: 0, line: 220, size: 20 })], 4700)}</w:tr>
+</w:tbl>
+<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="737" w:right="851" w:bottom="567" w:left="851" w:header="0" w:footer="0" w:gutter="0"/></w:sectPr>
+</w:body></w:document>`;
+    }
+
+    function makeDocxBlob() {
+      const documentXml = makeActDocxXml();
+      const stylesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:rPr><w:rFonts w:ascii="Tahoma" w:hAnsi="Tahoma" w:cs="Tahoma"/><w:sz w:val="22"/><w:szCs w:val="22"/></w:rPr></w:style></w:styles>`;
+      const settingsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:settings xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:zoom w:percent="100"/><w:defaultTabStop w:val="708"/></w:settings>`;
+      return makeZip([
+        { name: '[Content_Types].xml', content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/></Types>` },
+        { name: '_rels/.rels', content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>` },
+        { name: 'word/_rels/document.xml.rels', content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdStyles" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rIdSettings" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/></Relationships>` },
+        { name: 'word/document.xml', content: documentXml },
+        { name: 'word/styles.xml', content: stylesXml },
+        { name: 'word/settings.xml', content: settingsXml }
+      ]);
+    }
+
+    function downloadDocx() {
+      render();
+      const docxBlob = makeDocxBlob();
+      const contract = safeFilePart(v('contractNumber', 'akt'));
+      downloadBlob(docxBlob, `akt_${contract}.docx`);
+    }
+
     function resetForm() {
       localStorage.removeItem(storageKey);
       hasUserInput = false;
@@ -1110,7 +1422,7 @@
       });
     });
 
-    document.getElementById('downloadPdfBtn').addEventListener('click', downloadPdf);
+    document.getElementById('downloadDocxBtn').addEventListener('click', downloadDocx);
     document.getElementById('resetBtn').addEventListener('click', resetForm);
 
     loadSettings();
