@@ -1096,7 +1096,7 @@
     <footer class="footer">
       <div class="footer-item">
         <div class="footer-mark">©</div>
-        <div class="footer-text">Версия 2.0 (01.06.2026)<br>Александр Марцынковский</div>
+        <div class="footer-text">Версия 2.1 (26.06.2026)<br>Александр Марцынковский</div>
       </div>
       <div class="footer-item">
         <div class="footer-mark">♡</div>
@@ -1168,9 +1168,18 @@
     }
 
     function dateRu(value) {
-      if (!value) return '__.__.____';
+      if (!value) return '__ ________ 20__';
+      const months = [
+        'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+        'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+      ];
       const [year, month, day] = value.split('-');
-      return `${day}.${month}.${year}`;
+      const monthName = months[Number(month) - 1] || '________';
+      return `${Number(day)} ${monthName} ${year}`;
+    }
+
+    function dateRuFull(value) {
+      return `${dateRu(value)} г.`;
     }
 
     function parseAmount(value) {
@@ -1251,10 +1260,10 @@
     }
 
     function moneyNumber(amount) {
+      const { rubles } = splitMoney(amount);
       return new Intl.NumberFormat('ru-RU', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-      }).format(round2(amount)).replace(/\u00A0/g, ' ');
+        maximumFractionDigits: 0
+      }).format(rubles).replace(/\u00A0/g, ' ');
     }
 
     function moneyWordsExcel(amount) {
@@ -1548,7 +1557,7 @@
 
       underlineValue(v('city', '________________'), 40, 333, 155, { size: 12 });
       text('(город, страна)', 187, 170, { size: 11, italic: true, align: 'center' });
-      underlineValue(dateRu(fields.actDate.value), 567, 750, 155, { size: 12 });
+      underlineValue(dateRuFull(fields.actDate.value), 567, 750, 155, { size: 12 });
       text('(дата)', 657, 170, { size: 11, italic: true, align: 'center' });
 
       const intro = `Мы, нижеподписавшиеся, ${ex.intro()}, с одной стороны, и представитель Заказчика, ${v('customerPosition', '________________')} ${v('customer', '________________')} ${v('customerName', '________________')}, действующий на основании ${v('customerBasis', '________________')}, с другой стороны, составили настоящий Акт в том, что в соответствии с договором №${v('contractNumber', '________')} от ${dateRu(fields.contractDate.value)} г.`;
@@ -1926,6 +1935,7 @@ const XLSX_TEMPLATE_ENTRIES = [{"name": "[Content_Types].xml", "b64": "PD94bWwgd
       const files = XLSX_TEMPLATE_ENTRIES.map(entry => ({ name: entry.name, data: binaryFromBase64(entry.b64) }));
       const sheetFile = files.find(file => file.name === 'xl/worksheets/sheet1.xml');
       let sheetXml = new TextDecoder('utf-8').decode(sheetFile.data);
+      sheetXml = sheetXml.replace(/<sheetViews>.*?<\/sheetViews>/s, '<sheetViews><sheetView tabSelected="1" workbookViewId="0"><selection activeCell="A1" sqref="A1"/></sheetView></sheetViews>');
       const intro = `               Мы, нижеподписавшиеся, ${ex.intro()}, с одной стороны, и представитель Заказчика, ${v('customerPosition', '________________')} ${customer} ${customerName}, действующий на основании ${v('customerBasis', '________________')}, с другой стороны, составили настоящий Акт в том, что в соответствии с договором №${contractNo} от ${contractDate} г.`;
       const money = `${moneyWordsExcel(total)}, в том числе НДС ${ex.vatRate}% - ${moneyWordsExcel(vat)}`;
       const replacements = {
@@ -1948,7 +1958,7 @@ const XLSX_TEMPLATE_ENTRIES = [{"name": "[Content_Types].xml", "b64": "PD94bWwgd
       Object.keys(replacements).forEach(ref => {
         sheetXml = setCellInlineString(sheetXml, ref, replacements[ref]);
       });
-      sheetXml = setCellInlineString(sheetXml, 'I8', dateRu(fields.actDate.value));
+      sheetXml = setCellInlineString(sheetXml, 'I8', dateRuFull(fields.actDate.value));
       sheetFile.data = new TextEncoder().encode(sheetXml);
       const workbookFile = files.find(file => file.name === 'xl/workbook.xml');
       if (workbookFile) {
