@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Конструктор актов сдачи-приемки</title>
+  <meta name="description" content="Конструктор актов сдачи-приемки для договоров Центрального офиса Русского Регистра">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="theme-color" content="#0f3d91">
+  <meta name="application-name" content="Конструктор актов">
+  <meta name="apple-mobile-web-app-title" content="Конструктор актов">
+  <meta name="color-scheme" content="light">
+  <meta property="og:title" content="Конструктор актов">
+  <meta property="og:description" content="Для договоров Центрального офиса Русского Регистра">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://acts.martsynkovskyi.ru/">
+  <meta property="og:image" content="https://acts.martsynkovskyi.ru/preview-v2.2.png">
+  <meta property="og:image:secure_url" content="https://acts.martsynkovskyi.ru/preview-v2.2.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Конструктор актов для договоров Центрального офиса Русского Регистра">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Конструктор актов">
+  <meta name="twitter:description" content="Для договоров Центрального офиса Русского Регистра">
+  <meta name="twitter:image" content="https://acts.martsynkovskyi.ru/preview-v2.2.png">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self'; style-src 'self'; script-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preload" href="fonts/GolosText-Regular.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/GolosText-SemiBold.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="assets/styles.css">
+  <script src="assets/xlsx-template.js" defer></script>
+  <script src="assets/app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="hero" aria-labelledby="siteTitle">
+      <div class="hero-brand" aria-hidden="true"><img src="assets/rr-logo.png" alt=""></div>
+      <div class="hero-copy"><h1 id="siteTitle">Конструктор актов</h1><p>для договоров Центрального офиса Русского Регистра</p></div>
+      <div class="hero-skyline" aria-hidden="true"><img src="assets/spb-header.jpg" alt=""></div>
+    </header>
+
+    <main class="workspace">
+      <section class="panel form-panel" aria-labelledby="formTitle">
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <span class="panel-icon panel-icon-blue" aria-hidden="true"><svg viewBox="0 0 32 32"><rect x="5" y="3" width="22" height="26" rx="6" fill="currentColor" opacity=".14"/><path d="M10 9.5h12M10 15.5h12M10 21.5h7" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="23.5" cy="22.5" r="5.5" fill="currentColor"/><path d="m21.2 22.5 1.55 1.6 3-3.2" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <div><h2 id="formTitle">Данные акта</h2><p>Заполните реквизиты, остальное сервис рассчитает сам.</p></div>
+          </div>
+          <div class="save-indicator" id="saveIndicator" data-state="idle" aria-live="polite"><span class="save-dot" aria-hidden="true"></span><span id="saveStatusText">Черновик не изменен</span></div>
+        </div>
+
+        <form id="actForm" novalidate autocomplete="off">
+          <fieldset class="form-section">
+            <legend><span class="section-number">1</span><span><strong>Акт и исполнитель</strong><small>Основные реквизиты документа</small></span></legend>
+            <div class="field field-wide">
+              <label for="executor">Исполнитель</label>
+              <div class="control-wrap select-wrap"><select id="executor" name="executor"><option value="rr">Ассоциация Русский Регистр</option><option value="rrPoa">Ассоциация Русский Регистр по доверенности</option><option value="rrms">ООО «РР МС»</option><option value="rrs">ООО «РРС»</option></select></div>
+            </div>
+            <div class="poa-fields" id="poaFields" aria-hidden="true">
+              <div class="poa-heading"><span class="poa-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3.5h7.2L19 8.3V20a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 20V5a1.5 1.5 0 0 1 1.5-1.5Z" fill="currentColor" opacity=".16"/><path d="M14 3.5V9h5M8.5 13h7M8.5 16.5h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><strong>Подписание по доверенности</strong><small>Эти сведения появятся только для выбранного варианта.</small></div></div>
+              <div class="field"><label for="assocPosition">Должность представителя Исполнителя</label><input id="assocPosition" name="assocPosition" placeholder="например, директор по сертификации" maxlength="180"><div class="field-feedback" id="assocPositionFeedback"></div></div>
+              <div class="field"><label for="assocName">И.О. Фамилия представителя Исполнителя</label><input id="assocName" name="assocName" placeholder="И.И. Иванов" maxlength="120"><div class="field-feedback" id="assocNameFeedback"></div></div>
+              <div class="field field-wide"><label for="assocBasis">Основание полномочий представителя Исполнителя</label><input id="assocBasis" name="assocBasis" placeholder="доверенность № ... от ..." maxlength="220"><div class="field-feedback" id="assocBasisFeedback"></div></div>
+            </div>
+            <div class="field-grid two-columns">
+              <div class="field"><label for="actDate">Дата акта</label><input id="actDate" name="actDate" type="date"></div>
+              <div class="field"><label for="city">Место составления акта</label><input id="city" name="city" placeholder="Санкт-Петербург" maxlength="100"></div>
+            </div>
+          </fieldset>
+
+          <fieldset class="form-section">
+            <legend><span class="section-number">2</span><span><strong>Заказчик и договор</strong><small>Сторона договора и подписант</small></span></legend>
+            <div class="field field-wide"><label for="customer">Краткое наименование Заказчика</label><input id="customer" name="customer" placeholder="ООО «Заказчик»" maxlength="180"><div class="field-feedback" id="customerFeedback"></div></div>
+            <div class="field-grid two-columns">
+              <div class="field"><label for="contractNumber">Номер договора</label><input id="contractNumber" name="contractNumber" placeholder="026.119" maxlength="80"></div>
+              <div class="field"><label for="contractDate">Дата заключения договора</label><input id="contractDate" name="contractDate" type="date"></div>
+            </div>
+            <div class="field field-wide"><label for="customerPosition">Должность представителя Заказчика</label><input id="customerPosition" name="customerPosition" placeholder="генеральный директор" maxlength="180"><div class="field-feedback" id="customerPositionFeedback"></div></div>
+            <div class="field field-wide"><label for="customerName">И.О. Фамилия представителя Заказчика</label><input id="customerName" name="customerName" placeholder="И.И. Иванов" maxlength="120"><div class="field-feedback" id="customerNameFeedback"></div></div>
+            <div class="field field-wide"><label for="customerBasis">Основание полномочий представителя Заказчика</label><input id="customerBasis" name="customerBasis" placeholder="Устав / доверенность № ..." maxlength="220"><div class="field-feedback" id="customerBasisFeedback"></div></div>
+          </fieldset>
+
+          <fieldset class="form-section form-section-last">
+            <legend><span class="section-number">3</span><span><strong>Услуги и расчеты</strong><small>Содержание акта и итоговая стоимость</small></span></legend>
+            <div class="field field-wide"><label for="servicePlace">Место оказания услуг</label><input id="servicePlace" name="servicePlace" placeholder="Санкт-Петербург, Россия" maxlength="180"><div class="field-feedback" id="servicePlaceFeedback"></div></div>
+            <div class="amount-grid">
+              <div class="field amount-field"><label for="amount">Стоимость с НДС, руб.</label><div class="control-wrap amount-wrap"><input id="amount" name="amount" inputmode="decimal" autocomplete="off" placeholder="45 000,00"><span class="currency-suffix" aria-hidden="true">₽</span></div><div class="amount-words" id="amountWordsShown">Сумма прописью появится после ввода.</div></div>
+              <div class="vat-card" aria-label="Расчет НДС"><div class="vat-card-top"><span>НДС</span><output id="vatShown">22%</output></div><small>Ставка определяется выбранным исполнителем</small><div class="vat-divider"></div><div class="vat-amount-row"><span>В том числе</span><output id="vatAmountShown">0 руб.</output></div></div>
+            </div>
+            <div class="field field-wide"><div class="label-row"><label for="serviceName">Наименование оказанных услуг по договору</label><span class="character-count" id="serviceNameCount">0</span></div><textarea id="serviceName" name="serviceName" placeholder="Введите наименование оказанных услуг" maxlength="1200"></textarea><div class="field-feedback field-feedback-visible" id="serviceNameFeedback" data-state="idle">Текст будет проверен на размещение в шаблоне.</div></div>
+          </fieldset>
+
+          <div class="form-actions">
+            <button class="button button-primary" type="button" id="downloadXlsxBtn"><svg class="excel-icon" viewBox="0 0 36 36" aria-hidden="true"><path class="excel-sheet" d="M13 3h13l6 6v24H13z"/><path class="excel-fold" d="M26 3v7h6"/><rect class="excel-tile" x="3" y="10" width="18" height="19" rx="4"/><path class="excel-x" d="m7.4 14.1 3.3 5.1-3.6 5.6h3.5l2-3.4 2 3.4h3.7l-3.7-5.6 3.4-5.1h-3.5l-1.8 3-1.8-3Z"/></svg><span class="button-label">Скачать .XLSX</span><span class="button-spinner" aria-hidden="true"></span></button>
+            <button class="button button-secondary" type="button" id="resetBtn"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="12" fill="currentColor" opacity=".1"/><path d="M23.8 12.2A8.7 8.7 0 1 0 24 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M24 7.8v6.3h-6.3" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Очистить форму</span></button>
+          </div>
+          <div class="privacy-note"><span class="privacy-icon" aria-hidden="true"><svg viewBox="0 0 28 28"><path d="M14 2.5 24 6v7.1c0 6.4-4.2 10.1-10 12.4C8.2 23.2 4 19.5 4 13.1V6Z" fill="currentColor" opacity=".13"/><path d="m9.5 14 3 3 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Данные хранятся только в этом браузере до очистки формы и никуда не передаются.</span></div>
+        </form>
+      </section>
+
+      <section class="panel preview-panel" aria-labelledby="previewTitle">
+        <div class="panel-header preview-header">
+          <div class="panel-title-group"><span class="panel-icon panel-icon-green" aria-hidden="true"><svg viewBox="0 0 32 32"><rect x="4" y="4" width="24" height="24" rx="7" fill="currentColor" opacity=".14"/><path d="M6.8 16s3.6-6 9.2-6 9.2 6 9.2 6-3.6 6-9.2 6-9.2-6-9.2-6Z" fill="currentColor"/><circle cx="16" cy="16" r="3.1" fill="#fff"/></svg></span><div><h2 id="previewTitle">Предварительный просмотр</h2><p>Визуальная структура соответствует итоговому XLSX.</p></div></div>
+          <div class="preview-toolbar" aria-label="Масштаб предпросмотра">
+            <button class="tool-button" type="button" id="zoomOutBtn" title="Уменьшить" aria-label="Уменьшить предпросмотр"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M6.8 10.5h7.4M15.5 15.5 21 21"/></svg></button>
+            <button class="tool-button tool-button-fit" type="button" id="zoomFitBtn" title="По размеру окна" aria-label="Показать по размеру окна"><span id="previewZoomLabel">По размеру</span></button>
+            <button class="tool-button" type="button" id="zoomInBtn" title="Увеличить" aria-label="Увеличить предпросмотр"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M7 10.5h7M10.5 7v7M15.5 15.5 21 21"/></svg></button>
+            <button class="tool-button tool-button-open" type="button" id="openPreviewBtn" title="Открыть на весь экран" aria-label="Открыть предпросмотр на весь экран"><svg viewBox="0 0 24 24"><path d="M8.5 3.5h-5v5M15.5 3.5h5v5M20.5 15.5v5h-5M8.5 20.5h-5v-5"/><path d="m3.5 8.5 5-5M15.5 3.5l5 5M20.5 15.5l-5 5M8.5 20.5l-5-5"/></svg></button>
+          </div>
+        </div>
+        <div class="preview-stage" id="previewStage"><div class="preview-center"><div class="preview-shell" id="previewShell"><canvas id="previewCanvas" width="1500" height="2016" aria-label="Предварительный просмотр акта"></canvas></div></div><button class="mobile-preview-button" type="button" id="mobileOpenPreviewBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1.5 12s3.8-6.5 10.5-6.5S22.5 12 22.5 12 18.7 18.5 12 18.5 1.5 12 1.5 12Z"/><circle cx="12" cy="12" r="3"/></svg>Открыть предпросмотр</button></div>
+        <div class="preview-footer"><div class="preview-legend"><span class="legend-dot"></span> Обычный вид Excel, лист «Акт»</div><div class="preview-health" id="previewHealth" data-state="ok">Все данные помещаются в шаблон</div></div>
+      </section>
+    </main>
+
+    <footer class="site-footer"><div class="footer-item"><span class="footer-badge" aria-hidden="true">©</span><span>Версия 2.2 (10.07.2026)<br>Александр Марцынковский</span></div><div class="footer-item footer-care"><span class="footer-badge footer-heart" aria-hidden="true">♡</span><span>Сделано с заботой<br>для вашей работы</span></div></footer>
+  </div>
+
+  <div class="preview-modal" id="previewModal" role="dialog" aria-modal="true" aria-labelledby="previewModalTitle" hidden><div class="preview-modal-backdrop" data-close-preview></div><div class="preview-modal-card"><header class="preview-modal-header"><div><h2 id="previewModalTitle">Предварительный просмотр акта</h2><p>Масштабируйте документ и проверьте его перед скачиванием.</p></div><div class="modal-toolbar"><button class="tool-button" type="button" id="modalZoomOutBtn" aria-label="Уменьшить"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M6.8 10.5h7.4M15.5 15.5 21 21"/></svg></button><button class="tool-button tool-button-fit" type="button" id="modalZoomFitBtn"><span id="modalZoomLabel">По размеру</span></button><button class="tool-button" type="button" id="modalZoomInBtn" aria-label="Увеличить"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M7 10.5h7M10.5 7v7M15.5 15.5 21 21"/></svg></button><button class="modal-close" type="button" id="closePreviewBtn" aria-label="Закрыть предпросмотр"><svg viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19"/></svg></button></div></header><div class="preview-stage preview-stage-modal" id="modalPreviewStage"><div class="preview-center"><div class="preview-shell" id="modalPreviewShell"><canvas id="modalPreviewCanvas" width="1500" height="2016" aria-label="Полноэкранный предварительный просмотр акта"></canvas></div></div></div></div></div>
+  <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true" hidden><span class="toast-icon" id="toastIcon" aria-hidden="true"></span><span class="toast-message" id="toastMessage"></span><button class="toast-action" type="button" id="toastAction" hidden></button><button class="toast-close" type="button" id="toastClose" aria-label="Закрыть уведомление">×</button></div>
+</body>
+</html>
