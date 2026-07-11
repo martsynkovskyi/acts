@@ -1,0 +1,341 @@
+/* Shared progressive web app install experience */
+:root {
+  --pwa-blue: #0f3d91;
+  --pwa-blue-bright: #1f6fd0;
+  --pwa-green: #168a43;
+  --pwa-text: #10233f;
+  --pwa-muted: #5f718c;
+  --pwa-border: rgba(36, 92, 166, .18);
+  --pwa-shadow: 0 16px 38px rgba(27, 68, 126, .16), 0 2px 8px rgba(27, 68, 126, .08);
+}
+
+.pwa-install-bar[hidden],
+.pwa-install-dialog[hidden] {
+  display: none !important;
+}
+
+.pwa-install-bar {
+  position: relative;
+  z-index: 1000;
+  width: min(1540px, calc(100% - 32px));
+  min-height: 64px;
+  margin: max(10px, env(safe-area-inset-top)) auto 0;
+  padding: 10px 12px 10px 14px;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  color: var(--pwa-text);
+  border: 1px solid var(--pwa-border);
+  border-radius: 18px;
+  background: rgba(255,255,255,.94);
+  box-shadow: var(--pwa-shadow);
+  -webkit-backdrop-filter: blur(18px) saturate(1.12);
+  backdrop-filter: blur(18px) saturate(1.12);
+  animation: pwa-slide-in .32s ease both;
+}
+
+.pwa-install-bar::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 0 50%, rgba(47, 122, 223, .13), transparent 35%),
+    linear-gradient(90deg, rgba(242,247,255,.7), rgba(255,255,255,.15));
+  pointer-events: none;
+}
+
+.pwa-install-icon {
+  width: 42px;
+  height: 42px;
+  display: block;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(15,61,145,.17);
+}
+
+.pwa-install-copy {
+  min-width: 0;
+}
+
+.pwa-install-copy strong {
+  display: block;
+  margin: 0 0 1px;
+  color: var(--pwa-text);
+  font: 650 14px/1.25 "Golos Text", system-ui, sans-serif;
+}
+
+.pwa-install-copy span {
+  display: block;
+  overflow: hidden;
+  color: var(--pwa-muted);
+  font: 450 12.5px/1.35 "Golos Text", system-ui, sans-serif;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pwa-install-action,
+.pwa-install-close,
+.pwa-dialog-close,
+.pwa-dialog-primary {
+  -webkit-appearance: none;
+  appearance: none;
+  border: 0;
+  font-family: "Golos Text", system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.pwa-install-action {
+  min-height: 40px;
+  padding: 9px 16px;
+  color: #fff;
+  border-radius: 12px;
+  background: linear-gradient(180deg, var(--pwa-blue-bright), var(--pwa-blue));
+  box-shadow: 0 8px 18px rgba(15,61,145,.22), inset 0 1px 0 rgba(255,255,255,.24);
+  font-size: 13px;
+  font-weight: 650;
+  white-space: nowrap;
+  transition: transform .16s ease, box-shadow .16s ease, filter .16s ease;
+}
+
+.pwa-install-action:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+  box-shadow: 0 11px 22px rgba(15,61,145,.26), inset 0 1px 0 rgba(255,255,255,.26);
+}
+
+.pwa-install-action:active {
+  transform: translateY(0);
+}
+
+.pwa-install-close,
+.pwa-dialog-close {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: #63718a;
+  border-radius: 10px;
+  background: transparent;
+  font-size: 23px;
+  line-height: 1;
+  transition: background .16s ease, color .16s ease;
+}
+
+.pwa-install-close:hover,
+.pwa-dialog-close:hover {
+  color: var(--pwa-text);
+  background: rgba(15,61,145,.08);
+}
+
+.pwa-install-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  padding: 18px;
+  display: grid;
+  place-items: center;
+  background: rgba(8, 22, 43, .46);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.pwa-dialog-card {
+  position: relative;
+  width: min(470px, 100%);
+  max-height: min(680px, calc(100vh - 36px));
+  overflow: auto;
+  padding: 26px;
+  color: var(--pwa-text);
+  border: 1px solid rgba(255,255,255,.72);
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 28px 80px rgba(9, 31, 66, .3);
+  animation: pwa-dialog-in .22s ease both;
+}
+
+.pwa-dialog-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+.pwa-dialog-head {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  padding-right: 32px;
+}
+
+.pwa-dialog-head img {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(15,61,145,.17);
+}
+
+.pwa-dialog-head h2 {
+  margin: 0 0 3px;
+  color: var(--pwa-text);
+  font: 700 23px/1.15 "Golos Text", system-ui, sans-serif;
+  letter-spacing: -.02em;
+}
+
+.pwa-dialog-head p {
+  margin: 0;
+  color: var(--pwa-muted);
+  font: 450 14px/1.45 "Golos Text", system-ui, sans-serif;
+}
+
+.pwa-dialog-steps {
+  margin: 22px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: pwa-step;
+}
+
+.pwa-dialog-steps li {
+  position: relative;
+  min-height: 42px;
+  margin: 0 0 12px;
+  padding: 10px 12px 10px 48px;
+  color: #263b59;
+  border: 1px solid rgba(36,92,166,.12);
+  border-radius: 14px;
+  background: #f7faff;
+  font: 450 14px/1.48 "Golos Text", system-ui, sans-serif;
+  counter-increment: pwa-step;
+}
+
+.pwa-dialog-steps li::before {
+  content: counter(pwa-step);
+  position: absolute;
+  left: 12px;
+  top: 9px;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  border-radius: 9px;
+  background: var(--pwa-blue-bright);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.pwa-dialog-note {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  color: #33506f;
+  border-left: 3px solid var(--pwa-green);
+  border-radius: 0 12px 12px 0;
+  background: rgba(22, 138, 67, .07);
+  font: 450 13px/1.5 "Golos Text", system-ui, sans-serif;
+}
+
+.pwa-dialog-primary {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 18px;
+  color: #fff;
+  border-radius: 13px;
+  background: linear-gradient(180deg, var(--pwa-blue-bright), var(--pwa-blue));
+  font-size: 14px;
+  font-weight: 650;
+}
+
+body.pwa-dialog-open {
+  overflow: hidden;
+}
+
+@media (display-mode: standalone) {
+  .pwa-install-bar {
+    display: none !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .pwa-install-bar {
+    width: calc(100% - 20px);
+    grid-template-columns: 38px minmax(0, 1fr) auto;
+    gap: 9px;
+    min-height: 58px;
+    margin-top: max(8px, env(safe-area-inset-top));
+    padding: 9px 9px 9px 10px;
+    border-radius: 15px;
+  }
+
+  .pwa-install-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+  }
+
+  .pwa-install-copy strong {
+    font-size: 13px;
+  }
+
+  .pwa-install-copy span {
+    font-size: 11.5px;
+  }
+
+  .pwa-install-action {
+    min-height: 37px;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .pwa-install-close {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 26px;
+    height: 26px;
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: #6f7c91;
+    font-size: 18px;
+    box-shadow: 0 4px 10px rgba(20,40,70,.18);
+  }
+
+  .pwa-dialog-card {
+    padding: 22px 18px 18px;
+    border-radius: 20px;
+  }
+
+  .pwa-dialog-head {
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .pwa-dialog-head img {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+  }
+
+  .pwa-dialog-head h2 {
+    font-size: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pwa-install-bar,
+  .pwa-dialog-card {
+    animation: none;
+  }
+}
+
+@keyframes pwa-slide-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pwa-dialog-in {
+  from { opacity: 0; transform: translateY(8px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}

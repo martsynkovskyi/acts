@@ -9,13 +9,17 @@
   <meta name="theme-color" content="#0f3d91">
   <meta name="application-name" content="Конструктор актов">
   <meta name="apple-mobile-web-app-title" content="Конструктор актов">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="msapplication-TileColor" content="#0f3d91">
   <meta name="color-scheme" content="light">
   <meta property="og:title" content="Конструктор актов">
   <meta property="og:description" content="Для договоров Центрального офиса Русского Регистра">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://acts.martsynkovskyi.ru/">
-  <meta property="og:image" content="https://acts.martsynkovskyi.ru/preview-v2.2.png">
-  <meta property="og:image:secure_url" content="https://acts.martsynkovskyi.ru/preview-v2.2.png">
+  <meta property="og:image" content="https://acts.martsynkovskyi.ru/preview-v2.3.png">
+  <meta property="og:image:secure_url" content="https://acts.martsynkovskyi.ru/preview-v2.3.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -23,18 +27,46 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Конструктор актов">
   <meta name="twitter:description" content="Для договоров Центрального офиса Русского Регистра">
-  <meta name="twitter:image" content="https://acts.martsynkovskyi.ru/preview-v2.2.png">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self'; style-src 'self'; script-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta name="twitter:image" content="https://acts.martsynkovskyi.ru/preview-v2.3.png">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="manifest" href="manifest.webmanifest?v=2.3">
   <link rel="preload" href="fonts/GolosText-Regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/GolosText-SemiBold.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/styles.css">
-  <script src="assets/xlsx-template.js" defer></script>
-  <script src="assets/app.js" defer></script>
+  <link rel="stylesheet" href="assets/styles-v2.3.css">
+  <link rel="stylesheet" href="assets/pwa.css">
+  <script src="assets/xlsx-template-v2.3.js" defer></script>
+  <script src="assets/app-v2.3.js" defer></script>
+  <script src="assets/pwa.js" defer></script>
 </head>
 <body>
+
+  <aside class="pwa-install-bar" id="pwaInstallBar" aria-label="Установка приложения" hidden>
+    <img class="pwa-install-icon" src="icons/icon-192.png" alt="">
+    <div class="pwa-install-copy">
+      <strong id="pwaInstallTitle">Установить приложение</strong>
+      <span id="pwaInstallText">Быстрый запуск и работа без интернета.</span>
+    </div>
+    <button class="pwa-install-action" type="button" id="pwaInstallButton">Установить</button>
+    <button class="pwa-install-close" type="button" id="pwaInstallDismiss" aria-label="Закрыть предложение установки">×</button>
+  </aside>
+
+  <div class="pwa-install-dialog" id="pwaInstallDialog" role="dialog" aria-modal="true" aria-labelledby="pwaDialogTitle" hidden>
+    <div class="pwa-dialog-card">
+      <button class="pwa-dialog-close" type="button" data-pwa-close aria-label="Закрыть">×</button>
+      <div class="pwa-dialog-head">
+        <img src="icons/icon-192.png" alt="">
+        <div>
+          <h2 id="pwaDialogTitle">Установить приложение</h2>
+          <p id="pwaDialogText">Добавьте сервис на устройство для быстрого запуска.</p>
+        </div>
+      </div>
+      <ol class="pwa-dialog-steps" id="pwaInstallSteps"></ol>
+      <p class="pwa-dialog-note">После установки сервис открывается в отдельном окне и продолжает работать без подключения к интернету после первого посещения.</p>
+      <button class="pwa-dialog-primary" type="button" data-pwa-close>Понятно</button>
+    </div>
+  </div>
   <div class="app-shell">
     <header class="hero" aria-labelledby="siteTitle">
       <div class="hero-brand" aria-hidden="true"><img src="assets/rr-logo.png" alt=""></div>
@@ -116,7 +148,7 @@
       </section>
     </main>
 
-    <footer class="site-footer"><div class="footer-item"><span class="footer-badge" aria-hidden="true">©</span><span>Версия 2.2 (10.07.2026)<br>Александр Марцынковский</span></div><div class="footer-item footer-care"><span class="footer-badge footer-heart" aria-hidden="true">♡</span><span>Сделано с заботой<br>для вашей работы</span></div></footer>
+    <footer class="site-footer"><div class="footer-item"><span class="footer-badge" aria-hidden="true">©</span><span>Версия 2.3 (11.07.2026)<br>Александр Марцынковский</span></div><div class="footer-item footer-care"><span class="footer-badge footer-heart" aria-hidden="true">♡</span><span>Сделано с заботой<br>для вашей работы</span></div></footer>
   </div>
 
   <div class="preview-modal" id="previewModal" role="dialog" aria-modal="true" aria-labelledby="previewModalTitle" hidden><div class="preview-modal-backdrop" data-close-preview></div><div class="preview-modal-card"><header class="preview-modal-header"><div><h2 id="previewModalTitle">Предварительный просмотр акта</h2><p>Масштабируйте документ и проверьте его перед скачиванием.</p></div><div class="modal-toolbar"><button class="tool-button" type="button" id="modalZoomOutBtn" aria-label="Уменьшить"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M6.8 10.5h7.4M15.5 15.5 21 21"/></svg></button><button class="tool-button tool-button-fit" type="button" id="modalZoomFitBtn"><span id="modalZoomLabel">По размеру</span></button><button class="tool-button" type="button" id="modalZoomInBtn" aria-label="Увеличить"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M7 10.5h7M10.5 7v7M15.5 15.5 21 21"/></svg></button><button class="modal-close" type="button" id="closePreviewBtn" aria-label="Закрыть предпросмотр"><svg viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19"/></svg></button></div></header><div class="preview-stage preview-stage-modal" id="modalPreviewStage"><div class="preview-center"><div class="preview-shell" id="modalPreviewShell"><canvas id="modalPreviewCanvas" width="1500" height="2016" aria-label="Полноэкранный предварительный просмотр акта"></canvas></div></div></div></div></div>
