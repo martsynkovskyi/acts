@@ -18,8 +18,8 @@
   <meta property="og:description" content="Для договоров Центрального офиса Русского Регистра">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://acts.martsynkovskyi.ru/">
-  <meta property="og:image" content="https://acts.martsynkovskyi.ru/preview-v2.4.png">
-  <meta property="og:image:secure_url" content="https://acts.martsynkovskyi.ru/preview-v2.4.png">
+  <meta property="og:image" content="https://acts.martsynkovskyi.ru/preview-v2.5.png">
+  <meta property="og:image:secure_url" content="https://acts.martsynkovskyi.ru/preview-v2.5.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -27,18 +27,19 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Конструктор актов">
   <meta name="twitter:description" content="Для договоров Центрального офиса Русского Регистра">
-  <meta name="twitter:image" content="https://acts.martsynkovskyi.ru/preview-v2.4.png">
+  <meta name="twitter:image" content="https://acts.martsynkovskyi.ru/preview-v2.5.png">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <link rel="manifest" href="manifest.webmanifest?v=2.4">
+  <link rel="manifest" href="manifest.webmanifest?v=2.5">
   <link rel="preload" href="fonts/GolosText-Regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/GolosText-SemiBold.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/styles-v2.4.css">
-  <link rel="stylesheet" href="assets/pwa-v2.4.css">
+  <link rel="stylesheet" href="assets/styles-v2.5.css">
+  <link rel="stylesheet" href="assets/pwa-v2.5.css">
   <script src="assets/xlsx-template-v2.3.js" defer></script>
-  <script src="assets/app-v2.4.js" defer></script>
-  <script src="assets/pwa-v2.4.js" defer></script>
+  <script src="assets/workspace-v2.5.js" defer></script>
+  <script src="assets/app-v2.5.js" defer></script>
+  <script src="assets/pwa-v2.5.js" defer></script>
 </head>
 <body>
 
@@ -75,17 +76,30 @@
         </div>
 
         <form id="actForm" novalidate autocomplete="off">
+          <details class="work-tools" id="workTools">
+            <summary><span>Черновики и быстрые действия</span><small id="activeDraftLabel">Основной черновик</small></summary>
+            <div class="work-tools-body">
+              <div class="draft-row">
+                <div class="field draft-select-field"><label for="draftSelect">Именованный черновик</label><div class="control-wrap select-wrap"><select id="draftSelect" aria-describedby="draftHelp"></select></div></div>
+                <div class="compact-actions" aria-label="Управление черновиками"><button type="button" class="mini-button" id="newDraftBtn">Новый</button><button type="button" class="mini-button" id="renameDraftBtn">Переименовать</button><button type="button" class="mini-button mini-button-danger" id="deleteDraftBtn">Удалить</button></div>
+              </div>
+              <p class="tool-help" id="draftHelp">Переключение сохраняет текущий черновик и открывает выбранный.</p>
+              <div class="quick-actions"><button type="button" class="mini-button mini-button-primary" id="repeatActBtn">Повторить предыдущий акт</button><button type="button" class="mini-button" id="importXlsxBtn">Импортировать XLSX</button><button type="button" class="mini-button" id="defaultsBtn">Настроить значения по умолчанию</button><input type="file" id="xlsxFileInput" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden></div>
+              <div class="storage-row"><label class="toggle-label"><input type="checkbox" id="storageEnabled" checked><span>Сохранять данные на этом компьютере</span></label><span class="retention-label" id="retentionLabel">Срок хранения: 30 дней</span></div>
+            </div>
+          </details>
           <fieldset class="form-section">
-            <legend><span class="section-number">1</span><span><strong>Акт и исполнитель</strong><small>Основные реквизиты документа</small></span></legend>
+            <legend class="semantic-legend">Акт и исполнитель - основные реквизиты документа</legend>
+            <div class="section-heading" aria-hidden="true"><span class="section-number">1</span><span><strong>Акт и исполнитель</strong><small>Основные реквизиты документа</small></span></div>
             <div class="field field-wide">
               <label for="executor">Исполнитель</label>
               <div class="control-wrap select-wrap"><select id="executor" name="executor"><option value="rr">Ассоциация Русский Регистр</option><option value="rrPoa">Ассоциация Русский Регистр по доверенности</option><option value="rrms">ООО «РР МС»</option><option value="rrs">ООО «РРС»</option></select></div>
             </div>
             <div class="poa-fields" id="poaFields" aria-hidden="true">
               <div class="poa-heading"><span class="poa-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3.5h7.2L19 8.3V20a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 20V5a1.5 1.5 0 0 1 1.5-1.5Z" fill="currentColor" opacity=".16"/><path d="M14 3.5V9h5M8.5 13h7M8.5 16.5h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><strong>Подписание по доверенности</strong><small>Эти сведения появятся только для выбранного варианта.</small></div></div>
-              <div class="field"><label for="assocPosition">Должность представителя Исполнителя</label><input id="assocPosition" name="assocPosition" placeholder="например, директор по сертификации" maxlength="180"><div class="field-feedback" id="assocPositionFeedback"></div></div>
-              <div class="field"><label for="assocName">И.О. Фамилия представителя Исполнителя</label><input id="assocName" name="assocName" placeholder="И.И. Иванов" maxlength="120"><div class="field-feedback" id="assocNameFeedback"></div></div>
-              <div class="field field-wide"><label for="assocBasis">Основание полномочий представителя Исполнителя</label><input id="assocBasis" name="assocBasis" placeholder="доверенность № ... от ..." maxlength="220"><div class="field-feedback" id="assocBasisFeedback"></div></div>
+              <div class="field"><label for="assocPosition">Должность представителя Исполнителя</label><input id="assocPosition" name="assocPosition" placeholder="например, директор по сертификации" maxlength="180" aria-describedby="assocPositionFeedback"><div class="field-feedback" id="assocPositionFeedback"></div></div>
+              <div class="field"><label for="assocName">И.О. Фамилия представителя Исполнителя</label><input id="assocName" name="assocName" placeholder="И.И. Иванов" maxlength="120" aria-describedby="assocNameFeedback"><div class="field-feedback" id="assocNameFeedback"></div></div>
+              <div class="field field-wide"><label for="assocBasis">Основание полномочий представителя Исполнителя</label><input id="assocBasis" name="assocBasis" placeholder="доверенность № ... от ..." maxlength="220" aria-describedby="assocBasisFeedback"><div class="field-feedback" id="assocBasisFeedback"></div></div>
             </div>
             <div class="field-grid two-columns">
               <div class="field"><label for="actDate">Дата акта</label><input id="actDate" name="actDate" type="date"></div>
@@ -94,27 +108,32 @@
           </fieldset>
 
           <fieldset class="form-section">
-            <legend><span class="section-number">2</span><span><strong>Заказчик и договор</strong><small>Сторона договора и подписант</small></span></legend>
-            <div class="field field-wide"><label for="customer">Краткое наименование Заказчика</label><input id="customer" name="customer" placeholder="ООО «Заказчик»" maxlength="180"><div class="field-feedback" id="customerFeedback"></div></div>
+            <legend class="semantic-legend">Заказчик и договор - сторона договора и подписант</legend>
+            <div class="section-heading" aria-hidden="true"><span class="section-number">2</span><span><strong>Заказчик и договор</strong><small>Сторона договора и подписант</small></span></div>
+            <div class="reuse-row"><div class="field"><label for="customerCardSelect">Карточка заказчика</label><div class="control-wrap select-wrap"><select id="customerCardSelect"><option value="">Выберите сохраненную карточку</option></select></div></div><button type="button" class="mini-button" id="saveCustomerBtn">Сохранить заказчика</button></div>
+            <div class="field field-wide"><label for="customer">Краткое наименование Заказчика</label><input id="customer" name="customer" placeholder="ООО «Заказчик»" maxlength="180" aria-describedby="customerFeedback"><div class="field-feedback" id="customerFeedback"></div></div>
             <div class="field-grid two-columns">
               <div class="field"><label for="contractNumber">Номер договора</label><input id="contractNumber" name="contractNumber" placeholder="026.119" maxlength="80"></div>
               <div class="field"><label for="contractDate">Дата заключения договора</label><input id="contractDate" name="contractDate" type="date"></div>
             </div>
             <div class="field-grid two-columns">
-              <div class="field"><label for="customerPosition">Должность представителя Заказчика</label><input id="customerPosition" name="customerPosition" placeholder="генеральный директор" maxlength="180"><div class="field-feedback" id="customerPositionFeedback"></div></div>
-              <div class="field"><label for="customerName">И.О. Фамилия представителя Заказчика</label><input id="customerName" name="customerName" placeholder="И.И. Иванов" maxlength="120"><div class="field-feedback" id="customerNameFeedback"></div></div>
+              <div class="field"><label for="customerPosition">Должность представителя Заказчика</label><input id="customerPosition" name="customerPosition" placeholder="генеральный директор" maxlength="180" aria-describedby="customerPositionFeedback"><div class="field-feedback" id="customerPositionFeedback"></div></div>
+              <div class="field"><label for="customerName">И.О. Фамилия представителя Заказчика</label><input id="customerName" name="customerName" placeholder="И.И. Иванов" maxlength="120" aria-describedby="customerNameFeedback"><div class="field-feedback" id="customerNameFeedback"></div></div>
             </div>
-            <div class="field field-wide"><label for="customerBasis">Основание полномочий представителя Заказчика</label><input id="customerBasis" name="customerBasis" placeholder="Устав / доверенность № ..." maxlength="220"><div class="field-feedback" id="customerBasisFeedback"></div></div>
+            <div class="field field-wide"><label for="customerBasis">Основание полномочий представителя Заказчика</label><input id="customerBasis" name="customerBasis" placeholder="Устав / доверенность № ..." maxlength="220" aria-describedby="customerBasisFeedback"><div class="field-feedback" id="customerBasisFeedback"></div></div>
+            <div class="reuse-row"><div class="field"><label for="signerCardSelect">Карточка подписанта</label><div class="control-wrap select-wrap"><select id="signerCardSelect"><option value="">Выберите сохраненного подписанта</option></select></div></div><button type="button" class="mini-button" id="saveSignerBtn">Сохранить подписанта</button></div>
           </fieldset>
 
           <fieldset class="form-section form-section-last">
-            <legend><span class="section-number">3</span><span><strong>Услуги и расчеты</strong><small>Содержание акта и итоговая стоимость</small></span></legend>
-            <div class="field field-wide"><label for="servicePlace">Место оказания услуг</label><input id="servicePlace" name="servicePlace" placeholder="Санкт-Петербург, Россия" maxlength="180"><div class="field-feedback" id="servicePlaceFeedback"></div></div>
+            <legend class="semantic-legend">Услуги и расчеты - содержание акта и итоговая стоимость</legend>
+            <div class="section-heading" aria-hidden="true"><span class="section-number">3</span><span><strong>Услуги и расчеты</strong><small>Содержание акта и итоговая стоимость</small></span></div>
+            <div class="field field-wide"><label for="servicePlace">Место оказания услуг</label><input id="servicePlace" name="servicePlace" placeholder="Санкт-Петербург, Россия" maxlength="180" aria-describedby="servicePlaceFeedback"><div class="field-feedback" id="servicePlaceFeedback"></div></div>
             <div class="amount-grid">
-              <div class="field amount-field"><label for="amount">Стоимость с НДС, руб.</label><div class="control-wrap amount-wrap"><input id="amount" name="amount" inputmode="decimal" autocomplete="off" placeholder="45 000,00"><span class="currency-suffix" aria-hidden="true">₽</span></div><div class="amount-words" id="amountWordsShown">Сумма прописью появится после ввода.</div></div>
+              <div class="field amount-field"><label for="amount">Стоимость с НДС, руб.</label><div class="control-wrap amount-wrap"><input id="amount" name="amount" inputmode="decimal" autocomplete="off" placeholder="45 000,00" aria-describedby="amountWordsShown"><span class="currency-suffix" aria-hidden="true">₽</span></div><div class="amount-words" id="amountWordsShown">Сумма прописью появится после ввода.</div></div>
               <div class="vat-card" aria-label="Расчет НДС"><div class="vat-card-top"><span>НДС</span><output id="vatShown">22%</output></div><small>Ставка определяется выбранным исполнителем</small><div class="vat-divider"></div><div class="vat-amount-row"><span>В том числе</span><output id="vatAmountShown">0 руб.</output></div></div>
             </div>
-            <div class="field field-wide"><div class="label-row"><label for="serviceName">Наименование оказанных услуг по договору</label><span class="character-count" id="serviceNameCount">0</span></div><textarea id="serviceName" name="serviceName" placeholder="Введите наименование оказанных услуг" maxlength="1200"></textarea><div class="field-feedback field-feedback-visible" id="serviceNameFeedback" data-state="idle">Текст будет проверен на размещение в шаблоне.</div></div>
+            <div class="reuse-row service-reuse-row"><div class="field"><label for="serviceTemplateSelect">Типовые и недавние услуги</label><div class="control-wrap select-wrap"><select id="serviceTemplateSelect"><option value="">Выберите формулировку</option></select></div></div><button type="button" class="mini-button" id="saveServiceBtn">В типовые</button><button type="button" class="mini-button mini-button-danger" id="removeServiceBtn">Удалить</button></div>
+            <div class="field field-wide"><div class="label-row"><label for="serviceName">Наименование оказанных услуг по договору</label><span class="character-count" id="serviceNameCount">0</span></div><textarea id="serviceName" name="serviceName" placeholder="Введите наименование оказанных услуг" maxlength="1200" aria-describedby="serviceNameFeedback serviceNameCount"></textarea><div class="field-feedback field-feedback-visible" id="serviceNameFeedback" data-state="idle">Текст будет проверен на размещение в шаблоне.</div></div>
           </fieldset>
 
           <div class="validation-summary" id="validationSummary" role="alert" tabindex="-1" hidden>
@@ -126,7 +145,7 @@
             <button class="button button-preview-mobile" type="button" id="mobilePreviewQuickBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1.5 12s3.8-6.5 10.5-6.5S22.5 12 22.5 12 18.7 18.5 12 18.5 1.5 12 1.5 12Z"/><circle cx="12" cy="12" r="3"/></svg><span>Просмотреть</span></button>
           </div>
           <div class="form-utility-actions"><button class="reset-link" type="button" id="resetBtn"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="12" fill="currentColor" opacity=".1"/><path d="M23.8 12.2A8.7 8.7 0 1 0 24 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/><path d="M24 7.8v6.3h-6.3" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Очистить форму</span></button></div>
-          <div class="privacy-note"><span class="privacy-icon" aria-hidden="true"><svg viewBox="0 0 28 28"><path d="M14 2.5 24 6v7.1c0 6.4-4.2 10.1-10 12.4C8.2 23.2 4 19.5 4 13.1V6Z" fill="currentColor" opacity=".13"/><path d="m9.5 14 3 3 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span>Данные хранятся только в этом браузере до очистки формы и никуда не передаются.</span></div>
+          <div class="privacy-note"><span class="privacy-icon" aria-hidden="true"><svg viewBox="0 0 28 28"><path d="M14 2.5 24 6v7.1c0 6.4-4.2 10.1-10 12.4C8.2 23.2 4 19.5 4 13.1V6Z" fill="currentColor" opacity=".13"/><path d="m9.5 14 3 3 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span id="privacyText">Данные хранятся только в этом браузере не более 30 дней и никуда не передаются.</span></div>
         </form>
       </section>
 
@@ -146,11 +165,13 @@
       </section>
     </main>
 
-    <footer class="site-footer"><div class="footer-item"><span class="footer-badge" aria-hidden="true">©</span><span>Версия 2.4 (12.09.2026)<br>Александр Марцынковский</span></div><button class="footer-install" type="button" id="pwaInstallButton" hidden><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M5 19h14"/></svg><span>Установить приложение</span></button><div class="footer-item footer-runtime"><span class="runtime-dot" aria-hidden="true"></span><span id="pwaRuntimeStatus">Проверяем автономный режим…</span></div><div class="footer-item footer-care"><span class="footer-badge footer-heart" aria-hidden="true">♡</span><span>Сделано с заботой<br>для вашей работы</span></div></footer>
+    <footer class="site-footer"><div class="footer-item"><span class="footer-badge" aria-hidden="true">©</span><span>Версия 2.5 (12.09.2026)<br>Александр Марцынковский</span></div><button class="footer-install" type="button" id="pwaInstallButton" hidden><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M5 19h14"/></svg><span>Установить приложение</span></button><div class="footer-item footer-runtime"><span class="runtime-dot" aria-hidden="true"></span><span id="pwaRuntimeStatus">Проверяем автономный режим…</span></div><div class="footer-item footer-care"><span class="footer-badge footer-heart" aria-hidden="true">♡</span><span>Сделано с заботой<br>для вашей работы</span></div></footer>
   </div>
 
   <div class="preview-modal" id="previewModal" role="dialog" aria-modal="true" aria-labelledby="previewModalTitle" hidden><div class="preview-modal-backdrop" data-close-preview></div><div class="preview-modal-card"><header class="preview-modal-header"><div><h2 id="previewModalTitle">Предварительный просмотр акта</h2><p>Масштабируйте документ и проверьте его перед скачиванием.</p></div><div class="modal-toolbar"><button class="tool-button" type="button" id="modalZoomOutBtn" aria-label="Уменьшить"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M6.8 10.5h7.4M15.5 15.5 21 21"/></svg></button><button class="tool-button tool-button-fit" type="button" id="modalZoomFitBtn"><span id="modalZoomLabel">По размеру</span></button><button class="tool-button" type="button" id="modalZoomInBtn" aria-label="Увеличить"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M7 10.5h7M10.5 7v7M15.5 15.5 21 21"/></svg></button><button class="modal-close" type="button" id="closePreviewBtn" aria-label="Закрыть предпросмотр"><svg viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19"/></svg></button></div></header><div class="preview-stage preview-stage-modal" id="modalPreviewStage"><div class="preview-center"><div class="preview-shell" id="modalPreviewShell"><canvas id="modalPreviewCanvas" width="1500" height="2016" aria-label="Полноэкранный предварительный просмотр акта"></canvas></div></div></div></div></div>
   <div class="confirm-modal" id="clearConfirmModal" role="dialog" aria-modal="true" aria-labelledby="clearConfirmTitle" hidden><div class="confirm-backdrop" data-close-clear></div><div class="confirm-card"><h2 id="clearConfirmTitle">Очистить форму?</h2><p>Текущий черновик будет удален из этого браузера. После очистки действие можно отменить в течение 8 секунд.</p><div class="confirm-actions"><button class="button button-secondary" type="button" id="cancelClearBtn">Отмена</button><button class="button button-danger" type="button" id="confirmClearBtn">Очистить</button></div></div></div>
+  <div class="confirm-modal" id="draftNameModal" role="dialog" aria-modal="true" aria-labelledby="draftNameTitle" hidden><div class="confirm-backdrop" data-close-draft-name></div><div class="confirm-card"><h2 id="draftNameTitle">Новый черновик</h2><p id="draftNameHelp">Укажите короткое понятное название.</p><div class="field modal-field"><label for="draftNameInput">Название</label><input id="draftNameInput" maxlength="60" autocomplete="off" aria-describedby="draftNameHelp"></div><div class="confirm-actions"><button class="button button-secondary" type="button" id="cancelDraftNameBtn">Отмена</button><button class="button button-primary" type="button" id="saveDraftNameBtn">Сохранить</button></div></div></div>
+  <div class="confirm-modal" id="defaultsModal" role="dialog" aria-modal="true" aria-labelledby="defaultsTitle" hidden><div class="confirm-backdrop" data-close-defaults></div><div class="confirm-card"><h2 id="defaultsTitle">Значения по умолчанию</h2><p>Они применяются к новым и очищенным черновикам.</p><div class="field modal-field"><label for="defaultCity">Место составления акта</label><input id="defaultCity" maxlength="100" placeholder="Санкт-Петербург"></div><div class="field modal-field"><label for="defaultServicePlace">Место оказания услуг</label><input id="defaultServicePlace" maxlength="180" placeholder="Санкт-Петербург, Россия"></div><div class="field modal-field"><label for="defaultDateMode">Дата акта</label><div class="control-wrap select-wrap"><select id="defaultDateMode"><option value="blank">Не заполнять</option><option value="today">Текущая дата</option></select></div></div><div class="field modal-field"><label for="retentionDays">Срок хранения данных</label><div class="control-wrap select-wrap"><select id="retentionDays"><option value="7">7 дней</option><option value="30">30 дней</option><option value="90">90 дней</option><option value="365">1 год</option></select></div></div><div class="confirm-actions"><button class="button button-secondary" type="button" id="cancelDefaultsBtn">Отмена</button><button class="button button-primary" type="button" id="saveDefaultsBtn">Сохранить</button></div></div></div>
   <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true" hidden><span class="toast-icon" id="toastIcon" aria-hidden="true"></span><span class="toast-message" id="toastMessage"></span><button class="toast-action" type="button" id="toastAction" hidden></button><button class="toast-close" type="button" id="toastClose" aria-label="Закрыть уведомление">×</button></div>
 </body>
 </html>

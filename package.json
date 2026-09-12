@@ -1,0 +1,11 @@
+{
+  "name": "acts-constructor",
+  "private": true,
+  "version": "2.5.0",
+  "scripts": {
+    "test": "node tests/browser-regression.cjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.55.0"
+  }
+}
