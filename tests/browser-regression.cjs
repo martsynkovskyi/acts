@@ -10,12 +10,12 @@ const { chromium } = require('playwright');
 const root = path.resolve(__dirname, '..');
 const port = Number(process.env.QA_PORT || 4173);
 const baseUrl = `http://127.0.0.1:${port}/`;
-const outputDir = process.env.QA_OUTPUT || path.join(os.tmpdir(), 'acts-v2.5-qa');
+const outputDir = process.env.QA_OUTPUT || path.join(os.tmpdir(), 'acts-v2.6-qa');
 fs.mkdirSync(outputDir, { recursive: true });
 
 const validData = {
   actDate: '2026-09-12', city: 'Санкт-Петербург', customer: 'ООО «Тестовый заказчик»',
-  contractNumber: '026.119', contractDate: '2026-09-01', customerPosition: 'генеральный директор',
+  contractNumber: '26.001.01.026РР', contractDate: '2026-09-01', customerPosition: 'генеральный директор',
   customerName: 'И.И. Иванов', customerBasis: 'Устава', servicePlace: 'Санкт-Петербург, Россия',
   amount: '45 000,00', serviceName: 'Услуги по оценке соответствия и сертификации'
 };
@@ -47,7 +47,11 @@ async function fill(page, data = validData) {
     if (process.env.QA_BROWSER_PATH) launch.executablePath = process.env.QA_BROWSER_PATH;
     browser = await chromium.launch(launch);
     const context = await browser.newContext({ acceptDownloads: true });
-    await context.addInitScript(() => localStorage.clear());
+    await context.addInitScript(() => {
+      if (sessionStorage.getItem('actsQaInitialized')) return;
+      localStorage.clear();
+      sessionStorage.setItem('actsQaInitialized', '1');
+    });
     const page = await context.newPage();
     const pageErrors = [];
     page.on('pageerror', error => pageErrors.push(error.message));
@@ -55,8 +59,13 @@ async function fill(page, data = validData) {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(baseUrl, { waitUntil: 'networkidle' });
 
-    assert.equal(await page.evaluate(() => window.__ACTS_TEST_API__?.APP_VERSION), '2.5');
+    assert.equal(await page.evaluate(() => window.__ACTS_TEST_API__?.APP_VERSION), '2.6');
     await page.locator('#workTools').evaluate(element => { element.open = true; });
+    for (const [executor, placeholder] of Object.entries({ rr: '26.001.01.026РР', rrPoa: '26.001.01.026РР', rrms: '26.001.01.026РР-МС', rrs: '26.001.01.026РРС' })) {
+      await page.locator('#executor').selectOption(executor);
+      assert.equal(await page.locator('#contractNumber').getAttribute('placeholder'), placeholder);
+    }
+    await page.locator('#executor').selectOption('rr');
     assert.equal(await page.locator('.section-heading').count(), 3);
     for (const legend of await page.locator('legend.semantic-legend').all()) {
       const box = await legend.boundingBox(); assert.ok(box && box.width <= 1 && box.height <= 1, 'semantic legend must be visually hidden');
@@ -116,9 +125,20 @@ async function fill(page, data = validData) {
     await page.locator('#saveCustomerBtn').click();
     await page.locator('#saveSignerBtn').click();
     await page.locator('#saveServiceBtn').click();
-    assert.equal(await page.locator('#customerCardSelect option').count(), 2);
-    assert.equal(await page.locator('#signerCardSelect option').count(), 2);
-    assert.equal(await page.locator('#serviceTemplateSelect optgroup[label="Типовые"] option').count(), 1);
+    assert.equal(await page.locator('#customerCardOptions option').count(), 1);
+    assert.equal(await page.locator('#signerCardOptions option').count(), 1);
+    assert.equal(await page.locator('#serviceTemplateOptions option').count(), 1);
+    assert.equal(await page.locator('label[for="serviceTemplateSelect"]').innerText(), 'Типовые услуги');
+    await page.locator('#customer').fill('');
+    await page.locator('#customerCardSelect').fill(validData.customer);
+    assert.equal(await page.locator('#customer').inputValue(), validData.customer);
+    await page.locator('#customerPosition').fill(''); await page.locator('#customerName').fill(''); await page.locator('#customerBasis').fill('');
+    await page.locator('#signerCardSelect').fill(`${validData.customerName} - ${validData.customerPosition} - ${validData.customerBasis}`);
+    assert.equal(await page.locator('#customerPosition').inputValue(), validData.customerPosition);
+    assert.equal(await page.locator('#customerBasis').inputValue(), validData.customerBasis);
+    await page.locator('#serviceName').fill('');
+    await page.locator('#serviceTemplateSelect').fill(validData.serviceName);
+    assert.equal(await page.locator('#serviceName').inputValue(), validData.serviceName);
 
     for (const executor of ['rrms', 'rrs', 'rrPoa']) {
       await page.locator('#executor').selectOption(executor);
@@ -142,6 +162,11 @@ async function fill(page, data = validData) {
         await page.waitForFunction(() => document.getElementById('executor').value === 'rrPoa');
         assert.equal(await page.locator('#assocName').inputValue(), 'П.П. Петров');
         assert.equal(await page.locator('#assocBasis').inputValue(), 'доверенности № 15 от 1 сентября 2026 г.');
+        assert.equal(await page.locator('#executorSignerCardOptions option').count(), 1);
+        await page.locator('#assocPosition').fill(''); await page.locator('#assocName').fill(''); await page.locator('#assocBasis').fill('');
+        await page.locator('#executorSignerCardSelect').fill('П.П. Петров - директор по сертификации - доверенности № 15 от 1 сентября 2026 г.');
+        assert.equal(await page.locator('#assocPosition').inputValue(), 'директор по сертификации');
+        assert.equal(await page.locator('#assocBasis').inputValue(), 'доверенности № 15 от 1 сентября 2026 г.');
       }
     }
 
@@ -161,11 +186,42 @@ async function fill(page, data = validData) {
     assert.equal(await page.locator('#city').inputValue(), 'Москва');
     assert.equal(await page.locator('#servicePlace').inputValue(), 'Москва, Россия');
     assert.equal(await page.locator('#actDate').inputValue(), await page.evaluate(() => { const date = new Date(); return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 10); }));
+    await page.locator('#executor').selectOption('rrs');
+    assert.equal(await page.locator('#contractNumber').getAttribute('placeholder'), '26.001.01.026РРС');
     await page.locator('#customer').fill('ООО «Второй заказчик»');
     await page.locator('#draftSelect').selectOption('main');
     assert.equal(await page.locator('#customer').inputValue(), validData.customer);
+    assert.equal(await page.locator('#contractNumber').getAttribute('placeholder'), '26.001.01.026РР');
     await page.locator('#draftSelect').selectOption({ label: 'Второй акт' });
     assert.equal(await page.locator('#customer').inputValue(), 'ООО «Второй заказчик»');
+    assert.equal(await page.locator('#contractNumber').getAttribute('placeholder'), '26.001.01.026РРС');
+
+    const backupPromise = page.waitForEvent('download');
+    await page.locator('#exportBackupBtn').click();
+    const backupDownload = await backupPromise;
+    const backupPath = path.join(outputDir, backupDownload.suggestedFilename());
+    await backupDownload.saveAs(backupPath);
+    const backup = JSON.parse(fs.readFileSync(backupPath, 'utf8'));
+    assert.equal(backup.format, 'acts-constructor-backup');
+    assert.equal(backup.data.drafts.length, 2);
+    assert.equal(backup.data.executorSignerCards.length, 1);
+    assert.equal(backup.data.serviceTemplates.length, 1);
+    await page.locator('#customer').fill('Поврежденные данные');
+    page.once('dialog', dialog => dialog.accept());
+    await page.locator('#backupFileInput').setInputFiles(backupPath);
+    await page.waitForFunction(() => document.getElementById('customer').value === 'ООО «Второй заказчик»');
+    assert.equal((await page.evaluate(() => window.__ACTS_WORKSPACE_TEST_API__.getState())).drafts.length, 2);
+
+    await page.evaluate(() => {
+      localStorage.setItem('actsInstalledUnlimitedV1', '1');
+      const state = JSON.parse(localStorage.getItem('actsWorkspaceDataV1')); state.updatedAt = '2000-01-01T00:00:00.000Z'; localStorage.setItem('actsWorkspaceDataV1', JSON.stringify(state));
+      const form = JSON.parse(localStorage.getItem('actsGeneratorSettingsV10')); if (form) { form.savedAt = '2000-01-01T00:00:00.000Z'; localStorage.setItem('actsGeneratorSettingsV10', JSON.stringify(form)); }
+    });
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.locator('#workTools').evaluate(element => { element.open = true; });
+    assert.equal(await page.evaluate(() => window.__ACTS_INSTALLED__), true);
+    assert.equal(await page.locator('#retentionLabel').innerText(), 'Срок хранения: без ограничения');
+    assert.equal((await page.evaluate(() => window.__ACTS_WORKSPACE_TEST_API__.getState())).drafts.length, 2);
 
     await page.locator('#storageEnabled').uncheck();
     const storage = await page.evaluate(() => ({ allowed: window.__ACTS_STORAGE_ALLOWED__, data: localStorage.getItem('actsWorkspaceDataV1'), form: localStorage.getItem('actsGeneratorSettingsV10') }));
@@ -184,11 +240,11 @@ async function fill(page, data = validData) {
       if (!navigator.serviceWorker.controller) await new Promise(resolve => navigator.serviceWorker.addEventListener('controllerchange', resolve, { once: true }));
     });
     const caches = await page.evaluate(() => window.caches.keys());
-    assert.ok(caches.includes('acts-constructor-v2.5-20260912'));
+    assert.ok(caches.includes('acts-constructor-v2.6-20260912'));
     await context.setOffline(true);
     const offlinePage = await context.newPage();
     await offlinePage.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-    assert.equal(await offlinePage.evaluate(() => window.__ACTS_TEST_API__?.APP_VERSION), '2.5');
+    assert.equal(await offlinePage.evaluate(() => window.__ACTS_TEST_API__?.APP_VERSION), '2.6');
     assert.ok(await offlinePage.evaluate(() => Array.isArray(window.XLSX_TEMPLATE_ENTRIES) && window.XLSX_TEMPLATE_ENTRIES.length > 0));
     await offlinePage.close();
     await context.setOffline(false);
