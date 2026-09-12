@@ -1,20 +1,21 @@
 "use strict";
 
-const CACHE_NAME = "acts-constructor-v2.3-20260711";
+const CACHE_PREFIX = "acts-constructor-";
+const CACHE_NAME = `${CACHE_PREFIX}v2.4-20260912`;
 const OFFLINE_URL = "./index.html";
 const APP_SHELL = [
   "./index.html",
-  "./assets/styles-v2.3.css",
-  "./assets/app-v2.3.js",
+  "./assets/styles-v2.4.css",
+  "./assets/app-v2.4.js",
   "./assets/xlsx-template-v2.3.js",
-  "./assets/pwa.css",
-  "./assets/pwa.js",
+  "./assets/pwa-v2.4.css",
+  "./assets/pwa-v2.4.js",
   "./assets/rr-logo.png",
   "./assets/spb-header.jpg",
   "./favicon.svg",
   "./apple-touch-icon.png",
   "./manifest.webmanifest",
-  "./preview-v2.3.png",
+  "./preview-v2.4.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/icon-maskable-192.png",
@@ -31,14 +32,13 @@ self.addEventListener("install", event => {
     const cache = await caches.open(CACHE_NAME);
     const requests = APP_SHELL.map(url => new Request(url, { cache: "reload" }));
     await cache.addAll(requests);
-    await self.skipWaiting();
   })());
 });
 
 self.addEventListener("activate", event => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
-    await Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)));
+    await Promise.all(keys.filter(key => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME).map(key => caches.delete(key)));
     await self.clients.claim();
   })());
 });
@@ -53,8 +53,9 @@ async function networkFirstNavigation(request) {
     if (response.ok) {
       const cache = await caches.open(CACHE_NAME);
       await cache.put(OFFLINE_URL, response.clone());
+      return response;
     }
-    return response;
+    return (await caches.match(OFFLINE_URL, { ignoreSearch: true })) || response;
   } catch (_) {
     return (await caches.match(OFFLINE_URL, { ignoreSearch: true })) || Response.error();
   }
