@@ -162,6 +162,41 @@
   right: 12px;
 }
 
+.pwa-dialog-close:focus-visible,
+.pwa-dialog-primary:focus-visible {
+  outline: 3px solid rgba(31, 111, 208, .32);
+  outline-offset: 2px;
+}
+
+.footer-install {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 13px;
+  color: #174f95;
+  border: 1px solid #bed1e7;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .78);
+  font: 600 13px/1.2 "Golos Text", system-ui, sans-serif;
+  cursor: pointer;
+}
+
+.footer-install:hover {
+  border-color: #91b2d8;
+  background: #fff;
+}
+
+.footer-install:focus-visible {
+  outline: 3px solid rgba(31, 111, 208, .25);
+  outline-offset: 2px;
+}
+
+.footer-install svg {
+  flex: 0 0 auto;
+}
+
 .pwa-dialog-head {
   display: grid;
   grid-template-columns: 56px minmax(0, 1fr);
@@ -252,8 +287,15 @@ body.pwa-dialog-open {
 }
 
 @media (display-mode: standalone) {
-  .pwa-install-bar {
+  .pwa-install-bar,
+  .footer-install {
     display: none !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .footer-install {
+    justify-self: start;
   }
 }
 

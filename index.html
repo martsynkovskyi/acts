@@ -42,17 +42,7 @@
 </head>
 <body>
 
-  <aside class="pwa-install-bar" id="pwaInstallBar" aria-label="Установка приложения" hidden>
-    <img class="pwa-install-icon" src="icons/icon-192.png" alt="">
-    <div class="pwa-install-copy">
-      <strong id="pwaInstallTitle">Установить приложение</strong>
-      <span id="pwaInstallText">Быстрый запуск и работа без интернета.</span>
-    </div>
-    <button class="pwa-install-action" type="button" id="pwaInstallButton">Установить</button>
-    <button class="pwa-install-close" type="button" id="pwaInstallDismiss" aria-label="Закрыть предложение установки">×</button>
-  </aside>
-
-  <div class="pwa-install-dialog" id="pwaInstallDialog" role="dialog" aria-modal="true" aria-labelledby="pwaDialogTitle" hidden>
+  <div class="pwa-install-dialog" id="pwaInstallDialog" role="dialog" aria-modal="true" aria-labelledby="pwaDialogTitle" aria-describedby="pwaDialogText pwaDialogNote" hidden>
     <div class="pwa-dialog-card">
       <button class="pwa-dialog-close" type="button" data-pwa-close aria-label="Закрыть">×</button>
       <div class="pwa-dialog-head">
@@ -63,7 +53,7 @@
         </div>
       </div>
       <ol class="pwa-dialog-steps" id="pwaInstallSteps"></ol>
-      <p class="pwa-dialog-note">После установки сервис открывается в отдельном окне и продолжает работать без подключения к интернету после первого посещения.</p>
+      <p class="pwa-dialog-note" id="pwaDialogNote">После установки сервис открывается в отдельном окне и продолжает работать без подключения к интернету после первого посещения.</p>
       <button class="pwa-dialog-primary" type="button" data-pwa-close>Понятно</button>
     </div>
   </div>
@@ -156,7 +146,7 @@
       </section>
     </main>
 
-    <footer class="site-footer"><div class="footer-item"><span class="footer-badge" aria-hidden="true">©</span><span>Версия 2.4 (12.09.2026)<br>Александр Марцынковский</span></div><div class="footer-item footer-runtime"><span class="runtime-dot" aria-hidden="true"></span><span id="pwaRuntimeStatus">Проверяем автономный режим…</span></div><div class="footer-item footer-care"><span class="footer-badge footer-heart" aria-hidden="true">♡</span><span>Сделано с заботой<br>для вашей работы</span></div></footer>
+    <footer class="site-footer"><div class="footer-item"><span class="footer-badge" aria-hidden="true">©</span><span>Версия 2.4 (12.09.2026)<br>Александр Марцынковский</span></div><button class="footer-install" type="button" id="pwaInstallButton" hidden><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M5 19h14"/></svg><span>Установить приложение</span></button><div class="footer-item footer-runtime"><span class="runtime-dot" aria-hidden="true"></span><span id="pwaRuntimeStatus">Проверяем автономный режим…</span></div><div class="footer-item footer-care"><span class="footer-badge footer-heart" aria-hidden="true">♡</span><span>Сделано с заботой<br>для вашей работы</span></div></footer>
   </div>
 
   <div class="preview-modal" id="previewModal" role="dialog" aria-modal="true" aria-labelledby="previewModalTitle" hidden><div class="preview-modal-backdrop" data-close-preview></div><div class="preview-modal-card"><header class="preview-modal-header"><div><h2 id="previewModalTitle">Предварительный просмотр акта</h2><p>Масштабируйте документ и проверьте его перед скачиванием.</p></div><div class="modal-toolbar"><button class="tool-button" type="button" id="modalZoomOutBtn" aria-label="Уменьшить"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M6.8 10.5h7.4M15.5 15.5 21 21"/></svg></button><button class="tool-button tool-button-fit" type="button" id="modalZoomFitBtn"><span id="modalZoomLabel">По размеру</span></button><button class="tool-button" type="button" id="modalZoomInBtn" aria-label="Увеличить"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M7 10.5h7M10.5 7v7M15.5 15.5 21 21"/></svg></button><button class="modal-close" type="button" id="closePreviewBtn" aria-label="Закрыть предпросмотр"><svg viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19"/></svg></button></div></header><div class="preview-stage preview-stage-modal" id="modalPreviewStage"><div class="preview-center"><div class="preview-shell" id="modalPreviewShell"><canvas id="modalPreviewCanvas" width="1500" height="2016" aria-label="Полноэкранный предварительный просмотр акта"></canvas></div></div></div></div></div>

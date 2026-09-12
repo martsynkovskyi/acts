@@ -1,7 +1,7 @@
 "use strict";
 
 const CACHE_PREFIX = "acts-constructor-";
-const CACHE_NAME = `${CACHE_PREFIX}v2.4-20260912`;
+const CACHE_NAME = `${CACHE_PREFIX}v2.4-20260912-footer-install`;
 const OFFLINE_URL = "./index.html";
 const APP_SHELL = [
   "./index.html",
