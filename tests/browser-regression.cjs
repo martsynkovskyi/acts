@@ -177,9 +177,9 @@ async function fill(page, data = validData) {
     assert.equal(await page.locator('#signerCardSelect, #signerCardOptions, #saveSignerBtn, #updateSignerBtn, #deleteSignerBtn').count(), 0, 'customer signer must not exist as a separate library');
     assert.equal(await page.evaluate(() => Boolean(document.querySelector('#executorPickerButton').compareDocumentPosition(document.querySelector('#executorSignerCardSelect')) & Node.DOCUMENT_POSITION_FOLLOWING)), true, 'executor signer library must follow executor selection');
     assert.equal(await page.evaluate(() => Boolean(document.querySelector('#executorSignerCardSelect').compareDocumentPosition(document.querySelector('#actDate')) & Node.DOCUMENT_POSITION_FOLLOWING)), true, 'executor signer library must precede act details');
-    assert.equal(await page.locator('#city').getAttribute('placeholder'), 'г. Санкт-Петербург');
+    assert.equal(await page.locator('#city').getAttribute('placeholder'), 'г. Санкт-Петербург, Россия');
     assert.equal(await page.locator('#servicePlace').getAttribute('placeholder'), 'г. Санкт-Петербург, Россия');
-    assert.equal(await page.locator('#defaultCity').getAttribute('placeholder'), 'г. Санкт-Петербург');
+    assert.equal(await page.locator('#defaultCity').getAttribute('placeholder'), 'г. Санкт-Петербург, Россия');
     assert.equal(await page.locator('#defaultServicePlace').getAttribute('placeholder'), 'г. Санкт-Петербург, Россия');
     assert.equal(await page.locator('.work-tools-summary strong').innerText(), 'Настройки сервиса');
     assert.equal(await page.locator('.work-tools-summary em').count(), 0);
@@ -555,7 +555,7 @@ async function fill(page, data = validData) {
       if (!navigator.serviceWorker.controller) await new Promise(resolve => navigator.serviceWorker.addEventListener('controllerchange', resolve, { once: true }));
     });
     const caches = await page.evaluate(() => window.caches.keys());
-    assert.ok(caches.includes('acts-constructor-v3.0.0-20260913-r7'));
+    assert.ok(caches.includes('acts-constructor-v3.0.0-20260913-r8'));
     await context.setOffline(true);
     const offlinePage = await context.newPage();
     await offlinePage.goto(baseUrl, { waitUntil: 'domcontentloaded' });
