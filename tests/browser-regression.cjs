@@ -63,11 +63,21 @@ async function fill(page, data = validData) {
     assert.equal(await page.locator('#retentionDays').inputValue(), 'always');
     assert.equal((await page.evaluate(() => window.__ACTS_WORKSPACE_TEST_API__.getPreferences())).retentionDays, 'always');
     assert.match(await page.locator('#privacyText').innerText(), /без ограничения срока/);
+    const selectTypography = await page.evaluate(() => {
+      const values = ['executorPickerLabel', 'draftSelect', 'retentionDays'].map(id => {
+        const style = getComputedStyle(document.getElementById(id));
+        return { id, fontFamily: style.fontFamily, fontSize: style.fontSize, fontWeight: style.fontWeight, lineHeight: style.lineHeight, color: style.color };
+      });
+      return Object.fromEntries(values.map(({ id, ...style }) => [id, style]));
+    });
+    assert.deepEqual(selectTypography.draftSelect, selectTypography.executorPickerLabel, 'draft selector typography must match executor value');
+    assert.deepEqual(selectTypography.retentionDays, selectTypography.executorPickerLabel, 'retention selector typography must match executor value');
     const iconSystem = await page.evaluate(() => ({ pictograms: document.querySelectorAll('body img.ui-pictogram').length, total: document.querySelectorAll('body svg.ui-icon').length, inconsistent: document.querySelectorAll('body svg:not(.ui-icon)').length, inlinePaths: document.querySelectorAll('body svg path, body svg circle, body svg rect').length, externalUses: [...document.querySelectorAll('body svg.ui-icon use')].every(use => use.getAttribute('href')?.startsWith('assets/icons-v2.9.svg#')) }));
     assert.equal(iconSystem.pictograms, 7, 'main product symbols must use object-based illustrated pictograms');
     assert.ok(iconSystem.total > 0, 'utility controls must keep the unified icon system');
     assert.equal(iconSystem.inconsistent, 0); assert.equal(iconSystem.inlinePaths, 0); assert.equal(iconSystem.externalUses, true);
     await page.locator('#workTools').evaluate(element => { element.open = true; });
+    await page.screenshot({ path: path.join(outputDir, 'settings-typography.png'), fullPage: false });
     for (const [executor, placeholder] of Object.entries({ rr: '26.001.01.026РР', rrPoa: '26.001.01.026РР', rrms: '26.001.01.026РР-МС', rrs: '26.001.01.026РРС' })) {
       await page.locator('#executor').selectOption(executor);
       assert.equal(await page.locator('#contractNumber').getAttribute('placeholder'), placeholder);
@@ -127,14 +137,14 @@ async function fill(page, data = validData) {
     assert.deepEqual(finalFieldRow.map(item => item.id), ['amount', 'actDate', 'servicePlace']);
     assert.ok(Math.max(...finalFieldRow.map(item => item.top)) - Math.min(...finalFieldRow.map(item => item.top)) <= 1, 'cost, act date and service place must share one desktop row');
     const settingsSelectMetrics = await page.evaluate(() => {
-      const fieldFontSize = parseFloat(getComputedStyle(document.getElementById('city')).fontSize);
+      const executorFontSize = parseFloat(getComputedStyle(document.getElementById('executorPickerLabel')).fontSize);
       return ['draftSelect', 'retentionDays'].map(id => {
         const element = document.getElementById(id);
-        return { height: element.getBoundingClientRect().height, fontSize: parseFloat(getComputedStyle(element).fontSize), fieldFontSize };
+        return { height: element.getBoundingClientRect().height, fontSize: parseFloat(getComputedStyle(element).fontSize), executorFontSize };
       });
     });
     assert.ok(settingsSelectMetrics.every(metric => Math.abs(metric.height - 36) <= 1), 'settings selects must use the same control height');
-    assert.ok(settingsSelectMetrics.every(metric => Math.abs(metric.fontSize - metric.fieldFontSize) <= 0.1), 'settings selects must use the same font size as the form fields');
+    assert.ok(settingsSelectMetrics.every(metric => Math.abs(metric.fontSize - metric.executorFontSize) <= 0.1), 'settings selects must match the executor value font size');
     const actionWidths = await page.evaluate(() => { const download = document.getElementById('downloadXlsxBtn').getBoundingClientRect(), reset = document.getElementById('resetBtn').getBoundingClientRect(); return { download: download.width, reset: reset.width, topDifference: Math.abs(download.top - reset.top) }; });
     assert.ok(actionWidths.download / actionWidths.reset > 1.85 && actionWidths.download / actionWidths.reset < 2.15, 'download and reset actions must use a 2/3 to 1/3 ratio');
     assert.ok(actionWidths.topDifference <= 1, 'download and reset actions must stay on one row');
@@ -489,7 +499,7 @@ async function fill(page, data = validData) {
       if (!navigator.serviceWorker.controller) await new Promise(resolve => navigator.serviceWorker.addEventListener('controllerchange', resolve, { once: true }));
     });
     const caches = await page.evaluate(() => window.caches.keys());
-    assert.ok(caches.includes('acts-constructor-v3.0.0-20260913-r3'));
+    assert.ok(caches.includes('acts-constructor-v3.0.0-20260913-r5'));
     await context.setOffline(true);
     const offlinePage = await context.newPage();
     await offlinePage.goto(baseUrl, { waitUntil: 'domcontentloaded' });

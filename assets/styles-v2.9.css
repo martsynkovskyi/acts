@@ -191,7 +191,7 @@ input[type=date]::-webkit-datetime-edit{min-width:0;overflow:hidden}
 
 .work-tools .draft-row{align-items:center}
 .work-tools .draft-select-field .control-wrap,.retention-picker .control-wrap{min-width:0}
-.work-tools select,.retention-picker select{height:36px;padding:0 32px 0 10px;border:1px solid #c7d3e3;border-radius:9px;color:#1d2f4c;background:#fff;font-size:14px;font-weight:400}
+.work-tools select,.retention-picker select{height:36px;padding:0 32px 0 10px;border:1px solid #c7d3e3;border-radius:9px;color:var(--ink);background:#fff;font-size:13.5px;font-weight:500;line-height:1.25}
 .retention-picker .control-wrap{width:132px}
 .retention-picker>label{font-size:11px}
 
