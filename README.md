@@ -43,7 +43,7 @@ CNAME
 favicon.png
 apple-touch-icon.png
 manifest.webmanifest
-preview-v2.8.png
+preview-v3.0.png
 LICENSE-OFL.txt
 AUDIT-STATUS.md
 TEST-REPORT.md

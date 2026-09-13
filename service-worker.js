@@ -1,7 +1,7 @@
 "use strict";
 
 const CACHE_PREFIX = "acts-constructor-";
-const CACHE_NAME = `${CACHE_PREFIX}v3.0.0-20260913-r8`;
+const CACHE_NAME = `${CACHE_PREFIX}v3.0.0-20260913-r9`;
 const OFFLINE_URL = "./index.html";
 const APP_SHELL = [
   "./index.html",
@@ -33,7 +33,7 @@ const APP_SHELL = [
   "./favicon.png",
   "./apple-touch-icon.png",
   "./manifest.webmanifest",
-  "./preview-v2.8.png",
+  "./preview-v3.0.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/icon-maskable-192.png",

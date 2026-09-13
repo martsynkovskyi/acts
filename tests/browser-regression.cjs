@@ -482,7 +482,7 @@ async function fill(page, data = validData) {
     await retentionContext.close();
 
     const socialPreview = await page.evaluate(() => new Promise((resolve, reject) => {
-      const image = new Image(); image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight }); image.onerror = reject; image.src = 'preview-v2.8.png';
+      const image = new Image(); image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight }); image.onerror = reject; image.src = 'preview-v3.0.png';
     }));
     assert.deepEqual(socialPreview, { width: 1200, height: 630 });
     const heroArtwork = await page.evaluate(() => new Promise((resolve, reject) => {
@@ -555,7 +555,7 @@ async function fill(page, data = validData) {
       if (!navigator.serviceWorker.controller) await new Promise(resolve => navigator.serviceWorker.addEventListener('controllerchange', resolve, { once: true }));
     });
     const caches = await page.evaluate(() => window.caches.keys());
-    assert.ok(caches.includes('acts-constructor-v3.0.0-20260913-r8'));
+    assert.ok(caches.includes('acts-constructor-v3.0.0-20260913-r9'));
     await context.setOffline(true);
     const offlinePage = await context.newPage();
     await offlinePage.goto(baseUrl, { waitUntil: 'domcontentloaded' });
