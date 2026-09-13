@@ -14,32 +14,32 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="msapplication-TileColor" content="#0f3d91">
   <meta name="color-scheme" content="light">
-  <meta property="og:title" content="Конструктор актов">
-  <meta property="og:description" content="Для договоров Центрального офиса Русского Регистра">
+  <meta property="og:title" content="Конструктор актов - готовый XLSX за несколько минут">
+  <meta property="og:description" content="Акты сдачи-приемки для договоров Центрального офиса Русского Регистра">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://acts.martsynkovskyi.ru/">
-  <meta property="og:image" content="https://acts.martsynkovskyi.ru/preview-v2.7.png">
-  <meta property="og:image:secure_url" content="https://acts.martsynkovskyi.ru/preview-v2.7.png">
+  <meta property="og:image" content="https://acts.martsynkovskyi.ru/preview-v2.8.png">
+  <meta property="og:image:secure_url" content="https://acts.martsynkovskyi.ru/preview-v2.8.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Конструктор актов для договоров Центрального офиса Русского Регистра">
+  <meta property="og:image:alt" content="Конструктор актов - акты сдачи-приемки в готовом XLSX">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Конструктор актов">
-  <meta name="twitter:description" content="Для договоров Центрального офиса Русского Регистра">
-  <meta name="twitter:image" content="https://acts.martsynkovskyi.ru/preview-v2.7.png">
+  <meta name="twitter:description" content="Акты сдачи-приемки для договоров Центрального офиса Русского Регистра">
+  <meta name="twitter:image" content="https://acts.martsynkovskyi.ru/preview-v2.8.png">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; font-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
   <link rel="icon" href="favicon.png" type="image/png" sizes="64x64">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <link rel="manifest" href="manifest.webmanifest?v=2.7">
+  <link rel="manifest" href="manifest.webmanifest?v=2.8">
   <link rel="preload" href="fonts/GolosText-Regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/GolosText-SemiBold.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="assets/styles-v2.7.css">
-  <link rel="stylesheet" href="assets/pwa-v2.7.css">
+  <link rel="stylesheet" href="assets/styles-v2.8.css">
+  <link rel="stylesheet" href="assets/pwa-v2.8.css">
   <script src="assets/xlsx-template-v2.3.js" defer></script>
-  <script src="assets/workspace-v2.7.js" defer></script>
-  <script src="assets/app-v2.7.js" defer></script>
-  <script src="assets/pwa-v2.7.js" defer></script>
+  <script src="assets/workspace-v2.8.js" defer></script>
+  <script src="assets/app-v2.8.js" defer></script>
+  <script src="assets/pwa-v2.8.js" defer></script>
 </head>
 <body>
 
@@ -62,7 +62,7 @@
     <header class="hero" aria-labelledby="siteTitle">
       <div class="hero-brand" aria-hidden="true"><img src="assets/rr-logo.png" alt=""></div>
       <div class="hero-copy"><h1 id="siteTitle">Конструктор актов</h1><p>для договоров Центрального офиса Русского Регистра</p></div>
-      <div class="hero-skyline" aria-hidden="true"><img src="assets/spb-header.jpg" alt=""></div>
+      <div class="hero-skyline" aria-hidden="true"><img src="assets/social-preview-background-v2.8.png" alt=""></div>
     </header>
 
     <main class="workspace">
@@ -93,8 +93,17 @@
             <legend class="semantic-legend">Акт и исполнитель - основные реквизиты документа</legend>
             <div class="section-heading" aria-hidden="true"><span class="section-number">1</span><span><strong>Акт и исполнитель</strong><small>Основные реквизиты документа</small></span></div>
             <div class="field field-wide">
-              <label for="executor">Исполнитель</label>
-              <div class="control-wrap select-wrap"><select id="executor" name="executor"><option value="rr">Ассоциация Русский Регистр</option><option value="rrPoa">Ассоциация Русский Регистр по доверенности</option><option value="rrms">ООО «РР МС»</option><option value="rrs">ООО «РРС»</option></select></div>
+              <label for="executor" id="executorLabel">Исполнитель</label>
+              <div class="executor-picker">
+                <select id="executor" name="executor" class="executor-native" tabindex="-1" aria-hidden="true"><option value="rr">Ассоциация Русский Регистр</option><option value="rrPoa">Ассоциация Русский Регистр по доверенности</option><option value="rrms">ООО «РР МС»</option><option value="rrs">ООО «РРС»</option></select>
+                <button class="executor-trigger" type="button" id="executorPickerButton" role="combobox" aria-labelledby="executorLabel executorPickerLabel" aria-haspopup="listbox" aria-expanded="false" aria-controls="executorPickerOptions"><span class="executor-trigger-copy"><strong id="executorPickerLabel">Ассоциация Русский Регистр</strong></span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7.5 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <div class="library-options executor-options" id="executorPickerOptions" role="listbox" hidden>
+                  <button class="library-option" type="button" role="option" data-value="rr"><strong>Ассоциация Русский Регистр</strong></button>
+                  <button class="library-option" type="button" role="option" data-value="rrPoa"><strong>Ассоциация Русский Регистр по доверенности</strong></button>
+                  <button class="library-option" type="button" role="option" data-value="rrms"><strong>ООО «РР МС»</strong></button>
+                  <button class="library-option" type="button" role="option" data-value="rrs"><strong>ООО «РРС»</strong></button>
+                </div>
+              </div>
             </div>
             <div class="poa-fields" id="poaFields" aria-hidden="true">
               <div class="poa-heading"><span class="poa-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3.5h7.2L19 8.3V20a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 5 20V5a1.5 1.5 0 0 1 1.5-1.5Z" fill="currentColor" opacity=".16"/><path d="M14 3.5V9h5M8.5 13h7M8.5 16.5h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><strong>Подписание по доверенности</strong><small>Эти сведения появятся только для выбранного варианта.</small></div></div>
@@ -133,7 +142,7 @@
             <div class="field field-wide"><label for="servicePlace">Место оказания услуг</label><input id="servicePlace" name="servicePlace" placeholder="Санкт-Петербург, Россия" maxlength="180" aria-describedby="servicePlaceFeedback"><div class="field-feedback" id="servicePlaceFeedback"></div></div>
             <div class="amount-grid">
               <div class="field amount-field"><label for="amount">Стоимость с НДС, руб.</label><div class="control-wrap amount-wrap"><input id="amount" name="amount" inputmode="decimal" autocomplete="off" placeholder="45 000,00" aria-describedby="amountWordsShown"><span class="currency-suffix" aria-hidden="true">₽</span></div><div class="amount-words" id="amountWordsShown">Сумма прописью появится после ввода.</div></div>
-              <div class="vat-card" aria-label="Расчет НДС"><div class="vat-card-top"><span>НДС</span><output id="vatShown">22%</output></div><small>Ставка определяется выбранным исполнителем</small><div class="vat-divider"></div><div class="vat-amount-row"><span>В том числе</span><output id="vatAmountShown">0 руб.</output></div></div>
+              <div class="vat-card" aria-label="Расчет НДС"><div class="vat-card-top"><span>НДС</span><output id="vatShown">22%</output></div><div class="vat-divider"></div><div class="vat-amount-row"><span>В том числе</span><output id="vatAmountShown">0 руб.</output></div></div>
             </div>
             <div class="reuse-row service-reuse-row"><div class="field"><label for="serviceTemplateSelect">Типовые услуги</label><div class="library-picker"><input class="searchable-input" type="search" id="serviceTemplateSelect" placeholder="Начните вводить формулировку" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="serviceTemplateOptions"><div class="library-options" id="serviceTemplateOptions" role="listbox" hidden></div></div></div><div class="library-actions"><button type="button" class="mini-button" id="saveServiceBtn">Сохранить новую</button><button type="button" class="mini-button" id="updateServiceBtn" disabled>Обновить</button><button type="button" class="mini-button mini-button-danger" id="deleteServiceBtn" disabled>Удалить</button></div></div>
             <div class="field field-wide"><div class="label-row"><label for="serviceName">Наименование оказанных услуг по договору</label><span class="character-count" id="serviceNameCount">0</span></div><textarea id="serviceName" name="serviceName" placeholder="Введите наименование оказанных услуг" maxlength="1200" aria-describedby="serviceNameFeedback serviceNameCount"></textarea><div class="field-feedback field-feedback-visible" id="serviceNameFeedback" data-state="idle">Текст будет проверен на размещение в шаблоне.</div></div>
@@ -168,7 +177,7 @@
       </section>
     </main>
 
-    <footer class="site-footer"><div class="footer-item"><span class="footer-badge" aria-hidden="true">©</span><span>Версия 2.7 (13.09.2026)<br>Александр Марцынковский</span></div><button class="footer-install" type="button" id="pwaInstallButton" hidden><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M5 19h14"/></svg><span>Установить приложение</span></button><div class="footer-item footer-runtime"><span class="runtime-dot" aria-hidden="true"></span><span id="pwaRuntimeStatus">Проверяем автономный режим…</span></div><div class="footer-item footer-care"><span class="footer-badge footer-heart" aria-hidden="true">♡</span><span>Сделано с заботой<br>для вашей работы</span></div></footer>
+    <footer class="site-footer"><div class="footer-item"><span class="footer-badge" aria-hidden="true">©</span><span>Версия 2.8 (13.09.2026)<br>Александр Марцынковский</span></div><button class="footer-install" type="button" id="pwaInstallButton" hidden><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M5 19h14"/></svg><span>Установить приложение</span></button><div class="footer-item footer-runtime"><span class="runtime-dot" aria-hidden="true"></span><span id="pwaRuntimeStatus">Проверяем автономный режим…</span></div><div class="footer-item footer-care"><span class="footer-badge footer-heart" aria-hidden="true">♡</span><span>Сделано с заботой<br>для вашей работы</span></div></footer>
   </div>
 
   <div class="preview-modal" id="previewModal" role="dialog" aria-modal="true" aria-labelledby="previewModalTitle" hidden><div class="preview-modal-backdrop" data-close-preview></div><div class="preview-modal-card"><header class="preview-modal-header"><div><h2 id="previewModalTitle">Предварительный просмотр акта</h2><p>Масштабируйте документ и проверьте его перед скачиванием.</p></div><div class="modal-toolbar"><button class="tool-button" type="button" id="modalZoomOutBtn" aria-label="Уменьшить"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M6.8 10.5h7.4M15.5 15.5 21 21"/></svg></button><button class="tool-button tool-button-fit" type="button" id="modalZoomFitBtn"><span id="modalZoomLabel">По размеру</span></button><button class="tool-button" type="button" id="modalZoomInBtn" aria-label="Увеличить"><svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M7 10.5h7M10.5 7v7M15.5 15.5 21 21"/></svg></button><button class="modal-close" type="button" id="closePreviewBtn" aria-label="Закрыть предпросмотр"><svg viewBox="0 0 24 24"><path d="m5 5 14 14M19 5 5 19"/></svg></button></div></header><div class="preview-stage preview-stage-modal" id="modalPreviewStage"><div class="preview-center"><div class="preview-shell" id="modalPreviewShell"><canvas id="modalPreviewCanvas" width="1500" height="2016" aria-label="Полноэкранный предварительный просмотр акта"></canvas></div></div></div></div></div>
