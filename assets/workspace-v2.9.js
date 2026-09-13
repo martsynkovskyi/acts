@@ -24,7 +24,7 @@
   prefs.storageEnabled = prefs.storageEnabled !== false;
   prefs.retentionDays = String(prefs.retentionDays) === 'always' ? 'always' : [30, 183, 365].includes(Number(prefs.retentionDays)) ? Number(prefs.retentionDays) : 'always';
   prefs.defaults = prefs.defaults && typeof prefs.defaults === 'object' ? prefs.defaults : { city: '', servicePlace: '', dateMode: 'blank' };
-  const standaloneNow = window.matchMedia?.('(display-mode: standalone)').matches || window.matchMedia?.('(display-mode: window-controls-overlay)').matches || navigator.standalone === true;
+  const standaloneNow = window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true;
   const installedKnown = (() => { try { return localStorage.getItem(INSTALLED_KEY) === '1'; } catch (_) { return false; } })();
   const installedRetentionMigrated = (() => { try { return localStorage.getItem(INSTALLED_RETENTION_MIGRATION_KEY) === '1'; } catch (_) { return false; } })();
   const retentionDefaultMigrated = (() => { try { return localStorage.getItem(RETENTION_DEFAULT_MIGRATION_KEY) === '1'; } catch (_) { return false; } })();

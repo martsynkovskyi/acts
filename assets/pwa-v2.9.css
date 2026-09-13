@@ -293,13 +293,6 @@ body.pwa-dialog-open {
   }
 }
 
-@media (display-mode: window-controls-overlay) {
-  .pwa-install-bar,
-  .footer-install {
-    display: none !important;
-  }
-}
-
 @media (max-width: 760px) {
   .footer-install {
     justify-self: start;
