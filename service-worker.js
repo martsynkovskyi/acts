@@ -14,6 +14,7 @@ const APP_SHELL = [
   "./assets/rr-logo.png",
   "./assets/spb-header.jpg",
   "./assets/social-preview-background-v2.8.png",
+  "./assets/icons-v2.8.svg",
   "./favicon.png",
   "./apple-touch-icon.png",
   "./manifest.webmanifest",

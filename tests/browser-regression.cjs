@@ -60,6 +60,9 @@ async function fill(page, data = validData) {
     await page.goto(baseUrl, { waitUntil: 'networkidle' });
 
     assert.equal(await page.evaluate(() => window.__ACTS_TEST_API__?.APP_VERSION), '2.8');
+    const iconSystem = await page.evaluate(() => ({ total: document.querySelectorAll('body svg.ui-icon').length, inconsistent: document.querySelectorAll('body svg:not(.ui-icon)').length, inlinePaths: document.querySelectorAll('body svg path, body svg circle, body svg rect').length, externalUses: [...document.querySelectorAll('body svg.ui-icon use')].every(use => use.getAttribute('href')?.startsWith('assets/icons-v2.8.svg#')) }));
+    assert.equal(iconSystem.total, 22, 'the unified icon system must cover every interface SVG');
+    assert.equal(iconSystem.inconsistent, 0); assert.equal(iconSystem.inlinePaths, 0); assert.equal(iconSystem.externalUses, true);
     await page.locator('#workTools').evaluate(element => { element.open = true; });
     for (const [executor, placeholder] of Object.entries({ rr: '26.001.01.026РР', rrPoa: '26.001.01.026РР', rrms: '26.001.01.026РР-МС', rrs: '26.001.01.026РРС' })) {
       await page.locator('#executor').selectOption(executor);
