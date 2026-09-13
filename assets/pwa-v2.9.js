@@ -20,7 +20,7 @@
   const isMac = /Macintosh|Mac OS X/.test(ua) && !isIOS;
   const isSafari = /Safari/.test(ua) && !/(Chrome|Chromium|CriOS|Edg|EdgiOS|OPR|Opera|FxiOS|Firefox)/.test(ua);
   const isFirefox = /Firefox|FxiOS/.test(ua);
-  const isStandalone = () => window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  const isStandalone = () => window.matchMedia("(display-mode: standalone)").matches || window.matchMedia("(display-mode: window-controls-overlay)").matches || navigator.standalone === true;
   let deferredPrompt = null;
   let dialogOpener = null;
   let reloadingForUpdate = false;
@@ -169,6 +169,7 @@
   });
 
   window.matchMedia("(display-mode: standalone)").addEventListener?.("change", updateInstallButton);
+  window.matchMedia("(display-mode: window-controls-overlay)").addEventListener?.("change", updateInstallButton);
 
   installButton.addEventListener("click", install);
   dialogCloseButtons.forEach(button => button.addEventListener("click", closeDialog));

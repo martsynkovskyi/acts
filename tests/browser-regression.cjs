@@ -13,6 +13,16 @@ const baseUrl = `http://127.0.0.1:${port}/`;
 const outputDir = process.env.QA_OUTPUT || path.join(os.tmpdir(), 'acts-v3.0-qa');
 fs.mkdirSync(outputDir, { recursive: true });
 
+const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.webmanifest'), 'utf8'));
+assert.equal(manifest.display, 'standalone');
+assert.deepEqual(manifest.display_override, ['window-controls-overlay', 'standalone']);
+assert.equal(manifest.display_override.includes('minimal-ui'), false, 'installed app must not request browser navigation controls');
+assert.equal(manifest.start_url, '/');
+assert.equal(manifest.scope, '/');
+assert.match(fs.readFileSync(path.join(root, 'assets', 'pwa-v2.9.js'), 'utf8'), /display-mode: window-controls-overlay/);
+assert.match(fs.readFileSync(path.join(root, 'assets', 'workspace-v2.9.js'), 'utf8'), /display-mode: window-controls-overlay/);
+assert.match(fs.readFileSync(path.join(root, 'assets', 'pwa-v2.9.css'), 'utf8'), /display-mode: window-controls-overlay/);
+
 const validData = {
   actDate: '2026-09-12', city: 'Санкт-Петербург', customer: 'ООО «Тестовый заказчик»',
   contractNumber: '26.001.01.026РР', contractDate: '2026-09-01', customerPosition: 'генеральный директор',
@@ -455,7 +465,7 @@ async function fill(page, data = validData) {
         if (viewport.width === 1366) await page.screenshot({ path: path.join(outputDir, 'desktop-1366-viewport.png'), fullPage: false });
         const desktopMetrics = await page.evaluate(() => ({ appWidth: document.querySelector('.app-shell').getBoundingClientRect().width, heroHeight: document.querySelector('.hero').getBoundingClientRect().height, formHeight: document.querySelector('#actForm').scrollHeight, formPanelHeight: document.querySelector('.form-panel').getBoundingClientRect().height, previewPanelHeight: document.querySelector('.preview-panel').getBoundingClientRect().height, inputHeight: document.querySelector('#city').getBoundingClientRect().height, inputSize: parseFloat(getComputedStyle(document.querySelector('#city')).fontSize), labelSize: parseFloat(getComputedStyle(document.querySelector('label[for="city"]')).fontSize) }));
         assert.ok(desktopMetrics.appWidth >= Math.min(1660, viewport.width - 20) - 2, `workspace must use available Full HD width at ${viewport.width}px`);
-        assert.ok(desktopMetrics.heroHeight <= 90, `hero must stay compact at ${viewport.width}px, got ${desktopMetrics.heroHeight}px`);
+        assert.ok(desktopMetrics.heroHeight >= 104 && desktopMetrics.heroHeight <= 112, `hero must show the full architectural base at ${viewport.width}px, got ${desktopMetrics.heroHeight}px`);
         assert.ok(desktopMetrics.inputHeight <= 38, `inputs must stay compact at ${viewport.width}px`);
         assert.ok(desktopMetrics.labelSize >= 12, 'labels must remain readable');
         assert.ok(Math.abs(desktopMetrics.inputSize - desktopMetrics.labelSize) <= 1.5, 'field labels and values must share one readable scale');
@@ -489,7 +499,7 @@ async function fill(page, data = validData) {
       if (!navigator.serviceWorker.controller) await new Promise(resolve => navigator.serviceWorker.addEventListener('controllerchange', resolve, { once: true }));
     });
     const caches = await page.evaluate(() => window.caches.keys());
-    assert.ok(caches.includes('acts-constructor-v3.0.0-20260913-r3'));
+    assert.ok(caches.includes('acts-constructor-v3.0.0-20260913-r4'));
     await context.setOffline(true);
     const offlinePage = await context.newPage();
     await offlinePage.goto(baseUrl, { waitUntil: 'domcontentloaded' });
