@@ -193,7 +193,7 @@
   outline-offset: 2px;
 }
 
-.footer-install svg {
+.footer-install .ui-icon {
   flex: 0 0 auto;
 }
 

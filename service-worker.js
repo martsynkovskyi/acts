@@ -1,7 +1,7 @@
 "use strict";
 
 const CACHE_PREFIX = "acts-constructor-";
-const CACHE_NAME = `${CACHE_PREFIX}v3.0.0-20260913-r5`;
+const CACHE_NAME = `${CACHE_PREFIX}v3.0.0-20260913-r6`;
 const OFFLINE_URL = "./index.html";
 const APP_SHELL = [
   "./index.html",
@@ -14,6 +14,16 @@ const APP_SHELL = [
   "./assets/rr-logo.png",
   "./assets/hero-city-color-v2.10.png",
   "./assets/icons-v2.9.svg",
+  "./assets/icon-zoom-out-v3.svg",
+  "./assets/icon-zoom-in-v3.svg",
+  "./assets/icon-fullscreen-v3.svg",
+  "./assets/icon-close-v3.svg",
+  "./assets/icon-chevron-down-v3.svg",
+  "./assets/icon-download-v3.svg",
+  "./assets/pictogram-heart-v3.svg",
+  "./assets/icon-status-success-v3.svg",
+  "./assets/icon-status-warning-v3.svg",
+  "./assets/icon-status-error-v3.svg",
   "./assets/pictogram-document-check-v2.9.svg",
   "./assets/pictogram-preview-v2.9.svg",
   "./assets/pictogram-signature-v2.9.svg",

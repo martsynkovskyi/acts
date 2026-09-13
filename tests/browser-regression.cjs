@@ -60,24 +60,70 @@ async function fill(page, data = validData) {
     await page.goto(baseUrl, { waitUntil: 'networkidle' });
 
     assert.equal(await page.evaluate(() => window.__ACTS_TEST_API__?.APP_VERSION), '3.0');
+    assert.equal((await page.locator('#importXlsxBtn').textContent()).trim(), 'Загрузить данные из акта');
+    assert.equal(await page.locator('#importXlsxBtn img[src="assets/pictogram-excel-v2.9.svg"]').count(), 1);
+    assert.equal((await page.locator('#downloadXlsxBtn .button-label').textContent()).trim(), 'Скачать акт');
+    assert.equal(await page.locator('#downloadXlsxBtn img[src="assets/pictogram-excel-v2.9.svg"]').count(), 1);
     assert.equal(await page.locator('#retentionDays').inputValue(), 'always');
     assert.equal((await page.evaluate(() => window.__ACTS_WORKSPACE_TEST_API__.getPreferences())).retentionDays, 'always');
     assert.match(await page.locator('#privacyText').innerText(), /без ограничения срока/);
     const selectTypography = await page.evaluate(() => {
-      const values = ['executorPickerLabel', 'draftSelect', 'retentionDays'].map(id => {
+      const values = ['executorPickerLabel', 'draftPickerLabel', 'retentionPickerLabel'].map(id => {
         const style = getComputedStyle(document.getElementById(id));
         return { id, fontFamily: style.fontFamily, fontSize: style.fontSize, fontWeight: style.fontWeight, lineHeight: style.lineHeight, color: style.color };
       });
       return Object.fromEntries(values.map(({ id, ...style }) => [id, style]));
     });
-    assert.deepEqual(selectTypography.draftSelect, selectTypography.executorPickerLabel, 'draft selector typography must match executor value');
-    assert.deepEqual(selectTypography.retentionDays, selectTypography.executorPickerLabel, 'retention selector typography must match executor value');
-    const iconSystem = await page.evaluate(() => ({ pictograms: document.querySelectorAll('body img.ui-pictogram').length, total: document.querySelectorAll('body svg.ui-icon').length, inconsistent: document.querySelectorAll('body svg:not(.ui-icon)').length, inlinePaths: document.querySelectorAll('body svg path, body svg circle, body svg rect').length, externalUses: [...document.querySelectorAll('body svg.ui-icon use')].every(use => use.getAttribute('href')?.startsWith('assets/icons-v2.9.svg#')) }));
-    assert.equal(iconSystem.pictograms, 7, 'main product symbols must use object-based illustrated pictograms');
-    assert.ok(iconSystem.total > 0, 'utility controls must keep the unified icon system');
-    assert.equal(iconSystem.inconsistent, 0); assert.equal(iconSystem.inlinePaths, 0); assert.equal(iconSystem.externalUses, true);
+    assert.deepEqual(selectTypography.draftPickerLabel, selectTypography.executorPickerLabel, 'draft selector typography must match executor value');
+    assert.deepEqual(selectTypography.retentionPickerLabel, selectTypography.executorPickerLabel, 'retention selector typography must match executor value');
+    const listTypography = await page.evaluate(() => {
+      const ids = ['executorPickerOptions', 'draftPickerOptions', 'retentionPickerOptions'];
+      return Object.fromEntries(ids.map(id => {
+        const style = getComputedStyle(document.querySelector(`#${id} .library-option[aria-selected="true"] strong`));
+        return [id, { fontFamily: style.fontFamily, fontSize: style.fontSize, fontWeight: style.fontWeight, lineHeight: style.lineHeight, color: style.color }];
+      }));
+    });
+    assert.deepEqual(listTypography.draftPickerOptions, listTypography.executorPickerOptions, 'draft list typography must match executor list');
+    assert.deepEqual(listTypography.retentionPickerOptions, listTypography.executorPickerOptions, 'retention list typography must match executor list');
+    const iconSystem = await page.evaluate(() => ({ pictograms: document.querySelectorAll('body img.ui-pictogram').length, previewTools: document.querySelectorAll('body img.preview-tool-icon').length, utilities: document.querySelectorAll('body img.ui-icon').length, legacySvgIcons: document.querySelectorAll('body svg.ui-icon').length, inconsistent: document.querySelectorAll('body svg:not(.ui-icon)').length, inlinePaths: document.querySelectorAll('body svg path, body svg circle, body svg rect').length, externalUses: document.querySelectorAll('body svg use[href^="assets/icons-v2.9.svg#"]').length }));
+    assert.equal(iconSystem.pictograms, 8, 'main product symbols must use object-based illustrated pictograms');
+    assert.equal(iconSystem.previewTools, 6, 'preview controls must use reliable standalone image files');
+    assert.ok(iconSystem.utilities >= 10, 'utility controls must keep the unified standalone image system');
+    assert.equal(iconSystem.legacySvgIcons, 0); assert.equal(iconSystem.inconsistent, 0); assert.equal(iconSystem.inlinePaths, 0); assert.equal(iconSystem.externalUses, 0);
+    assert.equal(await page.locator('.footer-heart img').evaluate(image => image.complete && image.naturalWidth > 0), true, 'footer heart must be a loaded standalone image');
+    assert.equal(await page.locator('label[for="amount"]').innerText(), 'Стоимость с НДС');
+    assert.equal(await page.locator('#formTitle + p').innerText(), 'Заполните реквизиты, остальное сервис сделает сам.');
+    assert.equal(await page.locator('#zoomOutBtn img').evaluate(image => image.complete && image.naturalWidth > 0), true);
+    assert.equal(await page.locator('#zoomInBtn img').evaluate(image => image.complete && image.naturalWidth > 0), true);
+    assert.equal(await page.locator('#openPreviewBtn img').evaluate(image => image.complete && image.naturalWidth > 0), true);
     await page.locator('#workTools').evaluate(element => { element.open = true; });
+    const settingsTypography = await page.evaluate(() => ({
+      settingsHeading: getComputedStyle(document.querySelector('.work-tools-summary strong')).fontSize,
+      sectionHeading: getComputedStyle(document.querySelector('.section-heading strong')).fontSize,
+      settingsLabel: getComputedStyle(document.querySelector('.retention-picker > label')).fontSize,
+      fieldLabel: getComputedStyle(document.querySelector('.form-section label')).fontSize
+    }));
+    assert.equal(settingsTypography.settingsHeading, settingsTypography.sectionHeading, 'settings heading must match section headings');
+    assert.equal(settingsTypography.settingsLabel, settingsTypography.fieldLabel, 'settings labels must match field labels');
     await page.screenshot({ path: path.join(outputDir, 'settings-typography.png'), fullPage: false });
+    assert.equal(await page.locator('#draftSelect').getAttribute('aria-hidden'), 'true');
+    assert.equal(await page.locator('#retentionDays').getAttribute('aria-hidden'), 'true');
+    await page.locator('#draftPickerButton').click();
+    assert.equal(await page.locator('#draftPickerOptions').isVisible(), true);
+    assert.deepEqual(await page.locator('#draftPickerOptions .library-option').allInnerTexts(), ['Основной черновик']);
+    assert.equal(await page.locator('#draftPickerOptions .library-option[aria-selected="true"]').getAttribute('data-value'), 'main');
+    await page.screenshot({ path: path.join(outputDir, 'settings-draft-picker.png'), fullPage: false });
+    await page.locator('#draftPickerButton').click();
+    await page.locator('#retentionPickerButton').click();
+    assert.equal(await page.locator('#retentionPickerOptions').isVisible(), true);
+    assert.deepEqual(await page.locator('#retentionPickerOptions .library-option').allInnerTexts(), ['30 дней', 'Полгода', '1 год', 'Навсегда']);
+    assert.equal(await page.locator('#retentionPickerOptions .library-option[aria-selected="true"]').getAttribute('data-value'), 'always');
+    await page.screenshot({ path: path.join(outputDir, 'settings-retention-picker.png'), fullPage: false });
+    await page.locator('#retentionPickerOptions .library-option[data-value="183"]').click();
+    assert.equal(await page.locator('#retentionDays').inputValue(), '183');
+    assert.equal((await page.evaluate(() => window.__ACTS_WORKSPACE_TEST_API__.getPreferences())).retentionDays, 183, 'custom retention list must update the real preference');
+    await page.locator('#retentionDays').selectOption('always');
+    assert.equal(await page.locator('#retentionPickerLabel').innerText(), 'Навсегда');
     for (const [executor, placeholder] of Object.entries({ rr: '26.001.01.026РР', rrPoa: '26.001.01.026РР', rrms: '26.001.01.026РР-МС', rrs: '26.001.01.026РРС' })) {
       await page.locator('#executor').selectOption(executor);
       assert.equal(await page.locator('#contractNumber').getAttribute('placeholder'), placeholder);
@@ -138,12 +184,13 @@ async function fill(page, data = validData) {
     assert.ok(Math.max(...finalFieldRow.map(item => item.top)) - Math.min(...finalFieldRow.map(item => item.top)) <= 1, 'cost, act date and service place must share one desktop row');
     const settingsSelectMetrics = await page.evaluate(() => {
       const executorFontSize = parseFloat(getComputedStyle(document.getElementById('executorPickerLabel')).fontSize);
-      return ['draftSelect', 'retentionDays'].map(id => {
-        const element = document.getElementById(id);
-        return { height: element.getBoundingClientRect().height, fontSize: parseFloat(getComputedStyle(element).fontSize), executorFontSize };
+      return [['draftPickerButton', 'draftPickerLabel'], ['retentionPickerButton', 'retentionPickerLabel']].map(([buttonId, labelId]) => {
+        const element = document.getElementById(buttonId);
+        return { height: element.getBoundingClientRect().height, fontSize: parseFloat(getComputedStyle(document.getElementById(labelId)).fontSize), executorFontSize };
       });
     });
-    assert.ok(settingsSelectMetrics.every(metric => Math.abs(metric.height - 36) <= 1), 'settings selects must use the same control height');
+    const executorHeight = await page.locator('#executorPickerButton').evaluate(element => element.getBoundingClientRect().height);
+    assert.ok(settingsSelectMetrics.every(metric => Math.abs(metric.height - executorHeight) <= 1), 'settings selectors must use the executor control height');
     assert.ok(settingsSelectMetrics.every(metric => Math.abs(metric.fontSize - metric.executorFontSize) <= 0.1), 'settings selects must match the executor value font size');
     const actionWidths = await page.evaluate(() => { const download = document.getElementById('downloadXlsxBtn').getBoundingClientRect(), reset = document.getElementById('resetBtn').getBoundingClientRect(); return { download: download.width, reset: reset.width, topDifference: Math.abs(download.top - reset.top) }; });
     assert.ok(actionWidths.download / actionWidths.reset > 1.85 && actionWidths.download / actionWidths.reset < 2.15, 'download and reset actions must use a 2/3 to 1/3 ratio');
@@ -317,10 +364,12 @@ async function fill(page, data = validData) {
     await page.locator('#executor').selectOption('rrs');
     assert.equal(await page.locator('#contractNumber').getAttribute('placeholder'), '26.001.01.026РРС');
     await page.locator('#customer').fill('ООО «Второй заказчик»');
-    await page.locator('#draftSelect').selectOption('main');
+    await page.locator('#draftPickerButton').click();
+    await page.locator('#draftPickerOptions .library-option').filter({ hasText: 'Основной черновик' }).click();
     assert.equal(await page.locator('#customer').inputValue(), validData.customer);
     assert.equal(await page.locator('#contractNumber').getAttribute('placeholder'), '26.001.01.026РР');
-    await page.locator('#draftSelect').selectOption({ label: 'Второй акт' });
+    await page.locator('#draftPickerButton').click();
+    await page.locator('#draftPickerOptions .library-option').filter({ hasText: 'Второй акт' }).click();
     assert.equal(await page.locator('#customer').inputValue(), 'ООО «Второй заказчик»');
     assert.equal(await page.locator('#contractNumber').getAttribute('placeholder'), '26.001.01.026РРС');
 
@@ -499,7 +548,7 @@ async function fill(page, data = validData) {
       if (!navigator.serviceWorker.controller) await new Promise(resolve => navigator.serviceWorker.addEventListener('controllerchange', resolve, { once: true }));
     });
     const caches = await page.evaluate(() => window.caches.keys());
-    assert.ok(caches.includes('acts-constructor-v3.0.0-20260913-r5'));
+    assert.ok(caches.includes('acts-constructor-v3.0.0-20260913-r6'));
     await context.setOffline(true);
     const offlinePage = await context.newPage();
     await offlinePage.goto(baseUrl, { waitUntil: 'domcontentloaded' });

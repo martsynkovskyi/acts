@@ -50,11 +50,17 @@
     let nameMode = 'new';
     let state = loadState(api.snapshot());
     const selectedLibrary = { customer: null, executorSigner: null, service: null };
-    const executorPicker = document.querySelector('.executor-picker');
+    const executorPicker = document.getElementById('executorPickerButton')?.closest('.executor-picker');
     const executorTrigger = document.getElementById('executorPickerButton');
     const executorOptions = document.getElementById('executorPickerOptions');
     const executorLabel = document.getElementById('executorPickerLabel');
     const executorValues = new Set(['rr', 'rrPoa', 'rrms', 'rrs']);
+    const settingsPickers = [
+      { select: draftSelect, picker: document.getElementById('draftPicker'), trigger: document.getElementById('draftPickerButton'), label: document.getElementById('draftPickerLabel'), options: document.getElementById('draftPickerOptions') },
+      { select: retentionSelect, picker: document.getElementById('retentionPicker'), trigger: document.getElementById('retentionPickerButton'), label: document.getElementById('retentionPickerLabel'), options: document.getElementById('retentionPickerOptions') }
+    ];
+    const draftPicker = settingsPickers[0];
+    const retentionPicker = settingsPickers[1];
 
     function nowIso() { return new Date().toISOString(); }
     function todayLocal() { const date = new Date(); return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 10); }
@@ -91,6 +97,7 @@
 
     function openExecutorPicker() {
       if (!executorTrigger || !executorOptions) return;
+      closeSettingsPickers();
       executorOptions.hidden = false;
       executorTrigger.setAttribute('aria-expanded', 'true');
       const selected = executorOptions.querySelector('[aria-selected="true"]') || executorOptions.querySelector('[role="option"]');
@@ -127,6 +134,81 @@
       document.addEventListener('pointerdown', event => { if (!executorPicker.contains(event.target)) closeExecutorPicker(); });
       fields.executor.addEventListener('change', syncExecutorPicker);
       syncExecutorPicker();
+    }
+    function syncSettingsPicker(config) {
+      if (!config?.trigger || !config.options) return;
+      const selectedOption = config.select.selectedOptions[0];
+      config.label.textContent = selectedOption?.textContent || '';
+      config.trigger.disabled = config.select.disabled;
+      config.trigger.setAttribute('aria-disabled', config.select.disabled ? 'true' : 'false');
+      config.options.querySelectorAll('[role="option"]').forEach(option => option.setAttribute('aria-selected', option.dataset.value === config.select.value ? 'true' : 'false'));
+      if (config.select.disabled) closeSettingsPicker(config);
+    }
+    function closeSettingsPicker(config, { focus = false } = {}) {
+      if (!config?.trigger || !config.options) return;
+      config.options.hidden = true;
+      config.trigger.setAttribute('aria-expanded', 'false');
+      if (focus && !config.trigger.disabled) config.trigger.focus();
+    }
+    function closeSettingsPickers(except = null) {
+      settingsPickers.forEach(config => { if (config !== except) closeSettingsPicker(config); });
+    }
+    function openSettingsPicker(config) {
+      if (!config?.trigger || !config.options || config.trigger.disabled) return;
+      closeExecutorPicker();
+      closeSettingsPickers(config);
+      config.options.hidden = false;
+      config.trigger.setAttribute('aria-expanded', 'true');
+      const selected = config.options.querySelector('[aria-selected="true"]') || config.options.querySelector('[role="option"]');
+      selected?.focus();
+    }
+    function chooseSettingsOption(config, value) {
+      if (![...config.select.options].some(option => option.value === value && !option.disabled)) return;
+      config.select.value = value;
+      syncSettingsPicker(config);
+      closeSettingsPicker(config, { focus: true });
+      config.select.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    function renderSettingsPicker(config) {
+      if (!config?.options) return;
+      const buttons = [...config.select.options].map(nativeOption => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'library-option';
+        button.setAttribute('role', 'option');
+        button.dataset.value = nativeOption.value;
+        button.disabled = nativeOption.disabled;
+        const label = document.createElement('strong');
+        label.textContent = nativeOption.textContent;
+        button.appendChild(label);
+        button.addEventListener('click', () => chooseSettingsOption(config, nativeOption.value));
+        button.addEventListener('keydown', event => {
+          if (event.key === 'Escape') { event.preventDefault(); closeSettingsPicker(config, { focus: true }); return; }
+          if (event.key === 'Tab') { closeSettingsPicker(config); return; }
+          if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); chooseSettingsOption(config, nativeOption.value); return; }
+          if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+          event.preventDefault();
+          const options = [...config.options.querySelectorAll('[role="option"]:not(:disabled)')];
+          const index = options.indexOf(button);
+          const target = event.key === 'Home' ? 0 : event.key === 'End' ? options.length - 1 : event.key === 'ArrowDown' ? (index + 1) % options.length : (index - 1 + options.length) % options.length;
+          options[target]?.focus();
+        });
+        return button;
+      });
+      config.options.replaceChildren(...buttons);
+      syncSettingsPicker(config);
+    }
+    function bindSettingsPickers() {
+      settingsPickers.forEach(config => {
+        if (!config.trigger || !config.options || !config.picker) return;
+        config.trigger.addEventListener('click', () => config.options.hidden ? openSettingsPicker(config) : closeSettingsPicker(config));
+        config.trigger.addEventListener('keydown', event => {
+          if (!['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(event.key)) return;
+          event.preventDefault(); openSettingsPicker(config);
+        });
+        config.select.addEventListener('change', () => syncSettingsPicker(config));
+      });
+      document.addEventListener('pointerdown', event => settingsPickers.forEach(config => { if (config.picker && !config.picker.contains(event.target)) closeSettingsPicker(config); }));
     }
     function persistPrefs() {
       const safePrefs = { storageEnabled: prefs.storageEnabled, retentionDays: prefs.retentionDays };
@@ -183,6 +265,7 @@
     function renderDrafts() {
       draftSelect.replaceChildren(...state.drafts.map(draft => new Option(draft.name, draft.id)));
       draftSelect.value = state.activeDraftId;
+      renderSettingsPicker(draftPicker);
       const draft = currentDraft();
       document.getElementById('activeDraftLabel').textContent = draft?.name || 'Основной черновик';
       document.getElementById('deleteDraftBtn').disabled = state.drafts.length === 1;
@@ -270,6 +353,7 @@
       storageToggle.checked = prefs.storageEnabled;
       retentionSelect.value = String(prefs.retentionDays);
       retentionSelect.disabled = !prefs.storageEnabled;
+      renderSettingsPicker(retentionPicker);
       const retentionText = prefs.retentionDays === 'always' ? 'без ограничения срока' : prefs.retentionDays === 365 ? 'не более 1 года' : prefs.retentionDays === 183 ? 'не более полугода' : 'не более 30 дней';
       privacyText.textContent = !prefs.storageEnabled ? 'Сохранение отключено. Данные существуют только до закрытия этой вкладки и никуда не передаются.' : `Данные хранятся только на этом компьютере ${retentionText} и никуда не передаются.`;
     }
@@ -648,7 +732,7 @@
       } finally { document.getElementById('backupFileInput').value = ''; }
     }
 
-    renderDrafts(); renderLibraries(); bindLibraries(); bindExecutorPicker(); renderPrivacy(); updateContractPlaceholder();
+    renderDrafts(); renderLibraries(); bindLibraries(); bindExecutorPicker(); renderPrivacy(); bindSettingsPickers(); updateContractPlaceholder();
     const selected = currentDraft();
     if (selected?.fields && JSON.stringify(selected.fields) !== JSON.stringify(api.snapshot())) restore(selected.fields);
     persistPrefs(); persistState();
