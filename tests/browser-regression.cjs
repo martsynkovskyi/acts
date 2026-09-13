@@ -60,6 +60,9 @@ async function fill(page, data = validData) {
     await page.goto(baseUrl, { waitUntil: 'networkidle' });
 
     assert.equal(await page.evaluate(() => window.__ACTS_TEST_API__?.APP_VERSION), '3.0');
+    assert.equal(await page.locator('#retentionDays').inputValue(), 'always');
+    assert.equal((await page.evaluate(() => window.__ACTS_WORKSPACE_TEST_API__.getPreferences())).retentionDays, 'always');
+    assert.match(await page.locator('#privacyText').innerText(), /без ограничения срока/);
     const iconSystem = await page.evaluate(() => ({ pictograms: document.querySelectorAll('body img.ui-pictogram').length, total: document.querySelectorAll('body svg.ui-icon').length, inconsistent: document.querySelectorAll('body svg:not(.ui-icon)').length, inlinePaths: document.querySelectorAll('body svg path, body svg circle, body svg rect').length, externalUses: [...document.querySelectorAll('body svg.ui-icon use')].every(use => use.getAttribute('href')?.startsWith('assets/icons-v2.9.svg#')) }));
     assert.equal(iconSystem.pictograms, 7, 'main product symbols must use object-based illustrated pictograms');
     assert.ok(iconSystem.total > 0, 'utility controls must keep the unified icon system');
@@ -285,11 +288,13 @@ async function fill(page, data = validData) {
     await page.locator('#defaultServicePlace').fill('Москва, Россия');
     await page.locator('#defaultDateMode').selectOption('today');
     await page.locator('#saveDefaultsBtn').click();
-    assert.deepEqual(await page.locator('#retentionDays option').allInnerTexts(), ['30 дней', 'Полгода', '1 год', 'Всегда']);
+    assert.deepEqual(await page.locator('#retentionDays option').allInnerTexts(), ['30 дней', 'Полгода', '1 год', 'Навсегда']);
     await page.locator('#retentionDays').selectOption('183');
     assert.equal((await page.evaluate(() => window.__ACTS_WORKSPACE_TEST_API__.getPreferences())).retentionDays, 183);
-    await page.locator('#retentionDays').selectOption('always');
+    await page.evaluate(() => window.dispatchEvent(new Event('appinstalled')));
     assert.equal((await page.evaluate(() => window.__ACTS_WORKSPACE_TEST_API__.getPreferences())).retentionDays, 'always');
+    assert.equal(await page.locator('#retentionDays').inputValue(), 'always');
+    assert.match(await page.locator('#privacyText').innerText(), /без ограничения срока/);
 
     await page.locator('#newDraftBtn').click();
     await page.locator('#draftNameInput').fill('Второй акт');
@@ -338,6 +343,9 @@ async function fill(page, data = validData) {
 
     await page.evaluate(() => {
       localStorage.setItem('actsInstalledUnlimitedV1', '1');
+      localStorage.removeItem('actsInstalledRetentionDefaultV3');
+      const prefs = JSON.parse(localStorage.getItem('actsWorkspacePreferencesV1')); prefs.retentionDays = 30;
+      localStorage.setItem('actsWorkspacePreferencesV1', JSON.stringify(prefs));
       const state = JSON.parse(localStorage.getItem('actsWorkspaceDataV1')); state.updatedAt = '2000-01-01T00:00:00.000Z';
       [...state.customerCards, ...state.executorSignerCards].forEach(card => delete card.id);
       localStorage.setItem('actsWorkspaceDataV1', JSON.stringify(state));
@@ -474,7 +482,7 @@ async function fill(page, data = validData) {
       if (!navigator.serviceWorker.controller) await new Promise(resolve => navigator.serviceWorker.addEventListener('controllerchange', resolve, { once: true }));
     });
     const caches = await page.evaluate(() => window.caches.keys());
-    assert.ok(caches.includes('acts-constructor-v3.0.0-20260913'));
+    assert.ok(caches.includes('acts-constructor-v3.0.0-20260913-r2'));
     await context.setOffline(true);
     const offlinePage = await context.newPage();
     await offlinePage.goto(baseUrl, { waitUntil: 'domcontentloaded' });

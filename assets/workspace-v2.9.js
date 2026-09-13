@@ -3,6 +3,7 @@
   const PREFS_KEY = 'actsWorkspacePreferencesV1';
   const DATA_KEY = 'actsWorkspaceDataV1';
   const INSTALLED_KEY = 'actsInstalledUnlimitedV1';
+  const INSTALLED_RETENTION_MIGRATION_KEY = 'actsInstalledRetentionDefaultV3';
   const LEGACY_KEYS = ['actsGeneratorSettingsV9', 'actsGeneratorSettingsV10'];
   const DAY = 86400000;
   const fieldIds = ['executor', 'assocPosition', 'assocName', 'assocBasis', 'actDate', 'city', 'customer', 'contractNumber', 'contractDate', 'customerPosition', 'customerName', 'customerBasis', 'servicePlace', 'amount', 'serviceName'];
@@ -18,12 +19,16 @@
   }
 
   let prefs = readJson(PREFS_KEY, {});
+  const hasSavedRetention = Object.prototype.hasOwnProperty.call(prefs, 'retentionDays');
   prefs.storageEnabled = prefs.storageEnabled !== false;
-  prefs.retentionDays = String(prefs.retentionDays) === 'always' ? 'always' : [30, 183, 365].includes(Number(prefs.retentionDays)) ? Number(prefs.retentionDays) : 30;
+  prefs.retentionDays = String(prefs.retentionDays) === 'always' ? 'always' : [30, 183, 365].includes(Number(prefs.retentionDays)) ? Number(prefs.retentionDays) : 'always';
   prefs.defaults = prefs.defaults && typeof prefs.defaults === 'object' ? prefs.defaults : { city: '', servicePlace: '', dateMode: 'blank' };
   const standaloneNow = window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true;
-  if (standaloneNow) { try { localStorage.setItem(INSTALLED_KEY, '1'); } catch (_) {} }
-  window.__ACTS_INSTALLED__ = standaloneNow || (() => { try { return localStorage.getItem(INSTALLED_KEY) === '1'; } catch (_) { return false; } })();
+  const installedKnown = (() => { try { return localStorage.getItem(INSTALLED_KEY) === '1'; } catch (_) { return false; } })();
+  const installedRetentionMigrated = (() => { try { return localStorage.getItem(INSTALLED_RETENTION_MIGRATION_KEY) === '1'; } catch (_) { return false; } })();
+  if (!hasSavedRetention || ((standaloneNow || installedKnown) && !installedRetentionMigrated)) prefs.retentionDays = 'always';
+  if (standaloneNow) { try { localStorage.setItem(INSTALLED_KEY, '1'); localStorage.setItem(INSTALLED_RETENTION_MIGRATION_KEY, '1'); } catch (_) {} }
+  window.__ACTS_INSTALLED__ = standaloneNow || installedKnown;
   window.__ACTS_STORAGE_ALLOWED__ = prefs.storageEnabled;
   window.__ACTS_RETENTION_DAYS__ = prefs.retentionDays;
 
@@ -680,9 +685,10 @@
     document.getElementById('backupFileInput').onchange = event => restoreBackup(event.target.files?.[0]);
     fields.executor.addEventListener('change', updateContractPlaceholder);
     window.addEventListener('appinstalled', () => {
-      try { localStorage.setItem(INSTALLED_KEY, '1'); } catch (_) {}
-      window.__ACTS_INSTALLED__ = true; renderPrivacy();
-      toast('Приложение установлено. Настройка срока хранения сохранена.');
+      prefs.retentionDays = 'always';
+      try { localStorage.setItem(INSTALLED_KEY, '1'); localStorage.setItem(INSTALLED_RETENTION_MIGRATION_KEY, '1'); } catch (_) {}
+      window.__ACTS_INSTALLED__ = true; persistPrefs(); renderPrivacy();
+      toast('Приложение установлено. Срок хранения переключен на «Навсегда».');
     });
     window.addEventListener('acts:cleared', () => { const values = defaultFields(); restore(values); saveCurrent(true); });
     window.addEventListener('acts:restored', () => saveCurrent(true));
