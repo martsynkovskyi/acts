@@ -97,6 +97,13 @@ async function fill(page, data = validData) {
     assert.equal(await page.locator('#zoomInBtn img').evaluate(image => image.complete && image.naturalWidth > 0), true);
     assert.equal(await page.locator('#openPreviewBtn img').evaluate(image => image.complete && image.naturalWidth > 0), true);
     await page.locator('#workTools').evaluate(element => { element.open = true; });
+    const originalSaveStatus = await page.locator('#saveStatusText').textContent();
+    await page.locator('#saveStatusText').evaluate(element => { element.textContent = 'Черновик сохранен в 18:27'; });
+    const saveIndicatorLines = await page.locator('#saveStatusText').evaluate(element => { const range = document.createRange(); range.selectNodeContents(element); return { lineRects: range.getClientRects().length, whiteSpace: getComputedStyle(element).whiteSpace }; });
+    assert.equal(saveIndicatorLines.whiteSpace, 'nowrap');
+    assert.equal(saveIndicatorLines.lineRects, 1, 'save status must remain on one line');
+    await page.screenshot({ path: path.join(outputDir, 'save-indicator-single-line.png'), fullPage: false });
+    await page.locator('#saveStatusText').evaluate((element, text) => { element.textContent = text; }, originalSaveStatus);
     const settingsTypography = await page.evaluate(() => ({
       settingsHeading: getComputedStyle(document.querySelector('.work-tools-summary strong')).fontSize,
       sectionHeading: getComputedStyle(document.querySelector('.section-heading strong')).fontSize,
@@ -548,7 +555,7 @@ async function fill(page, data = validData) {
       if (!navigator.serviceWorker.controller) await new Promise(resolve => navigator.serviceWorker.addEventListener('controllerchange', resolve, { once: true }));
     });
     const caches = await page.evaluate(() => window.caches.keys());
-    assert.ok(caches.includes('acts-constructor-v3.0.0-20260913-r6'));
+    assert.ok(caches.includes('acts-constructor-v3.0.0-20260913-r7'));
     await context.setOffline(true);
     const offlinePage = await context.newPage();
     await offlinePage.goto(baseUrl, { waitUntil: 'domcontentloaded' });

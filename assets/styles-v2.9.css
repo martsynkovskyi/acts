@@ -195,6 +195,7 @@ input[type=date]::-webkit-datetime-edit{min-width:0;overflow:hidden}
 .work-tools .draft-select-field .control-wrap,.retention-picker .control-wrap{min-width:0}
 .work-tools .settings-select-picker .executor-trigger{border-color:#c7d3e3}
 .work-tools summary,.work-tools-summary strong{font-size:14px}.work-tools summary small{font-size:12px}.work-tools .tool-help{font-size:12px}.work-tools .mini-button{font-size:12px}.work-tools .toggle-label,.work-tools .retention-picker>label{font-size:13px}
+.save-indicator{max-width:none;white-space:nowrap}.save-indicator #saveStatusText{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .retention-picker .control-wrap{width:132px}
 .retention-picker>label{font-size:11px}
 
@@ -216,6 +217,7 @@ input[type=date]::-webkit-datetime-edit{min-width:0;overflow:hidden}
   .act-service-grid{grid-template-columns:1fr}
   .work-tools .settings-select-picker .executor-trigger-copy strong{font-size:16px}
   .work-tools summary,.work-tools-summary strong{font-size:14px}.work-tools .mini-button,.work-tools .tool-help{font-size:12px}.work-tools .toggle-label,.work-tools .retention-picker>label{font-size:14px}
+  .save-indicator{max-width:112px}
   .storage-row{gap:7px}.retention-picker{width:100%;justify-content:space-between}.retention-picker .control-wrap{width:126px}
   .site-footer{grid-template-columns:1fr}.footer-version,.footer-install,.footer-runtime,.footer-privacy,.footer-care{grid-column:1;justify-self:start}
 }
