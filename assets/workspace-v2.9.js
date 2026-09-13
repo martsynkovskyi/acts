@@ -19,7 +19,7 @@
 
   let prefs = readJson(PREFS_KEY, {});
   prefs.storageEnabled = prefs.storageEnabled !== false;
-  prefs.retentionDays = [7, 30, 90, 365].includes(Number(prefs.retentionDays)) ? Number(prefs.retentionDays) : 30;
+  prefs.retentionDays = String(prefs.retentionDays) === 'always' ? 'always' : [30, 183, 365].includes(Number(prefs.retentionDays)) ? Number(prefs.retentionDays) : 30;
   prefs.defaults = prefs.defaults && typeof prefs.defaults === 'object' ? prefs.defaults : { city: '', servicePlace: '', dateMode: 'blank' };
   const standaloneNow = window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true;
   if (standaloneNow) { try { localStorage.setItem(INSTALLED_KEY, '1'); } catch (_) {} }
@@ -36,12 +36,12 @@
     const form = document.getElementById('actForm');
     const draftSelect = document.getElementById('draftSelect');
     const storageToggle = document.getElementById('storageEnabled');
-    const retentionLabel = document.getElementById('retentionLabel');
+    const retentionSelect = document.getElementById('retentionDays');
     const privacyText = document.getElementById('privacyText');
     let saveTimer = 0;
     let nameMode = 'new';
     let state = loadState(api.snapshot());
-    const selectedLibrary = { customer: null, signer: null, executorSigner: null, service: null };
+    const selectedLibrary = { customer: null, executorSigner: null, service: null };
     const executorPicker = document.querySelector('.executor-picker');
     const executorTrigger = document.getElementById('executorPickerButton');
     const executorOptions = document.getElementById('executorPickerOptions');
@@ -152,14 +152,14 @@
     }
     function loadState(current) {
       const stored = prefs.storageEnabled ? readJson(DATA_KEY, null) : null;
-      const fresh = stored && (window.__ACTS_INSTALLED__ || (Date.parse(stored.updatedAt || '') && Date.now() - Date.parse(stored.updatedAt) <= prefs.retentionDays * DAY));
+      const fresh = stored && (prefs.retentionDays === 'always' || (Date.parse(stored.updatedAt || '') && Date.now() - Date.parse(stored.updatedAt) <= Number(prefs.retentionDays) * DAY));
       if (fresh && Array.isArray(stored.drafts) && stored.drafts.length) {
-        stored.customerCards = Array.isArray(stored.customerCards) ? stored.customerCards.map(card => ({ ...card, id: card.id || uid() })) : [];
-        stored.signerCards = Array.isArray(stored.signerCards) ? stored.signerCards.map(card => ({ ...card, id: card.id || uid() })) : [];
+        stored.customerCards = sanitizedCustomerCards(stored.customerCards, stored.drafts, stored.signerCards);
         stored.executorSignerCards = Array.isArray(stored.executorSignerCards) ? stored.executorSignerCards.map(card => ({ ...card, id: card.id || uid() })) : [];
         stored.serviceTemplates = Array.isArray(stored.serviceTemplates) ? stored.serviceTemplates : [];
-        stored.version = 2;
+        stored.version = 3;
         delete stored.recentServices;
+        delete stored.signerCards;
         return stored;
       }
       if (stored) removeStoredData();
@@ -170,7 +170,7 @@
           if (legacy?.fields) { migrated = { ...emptyFields(), ...legacy.fields }; break; }
         }
       }
-      return { version: 2, updatedAt: nowIso(), activeDraftId: 'main', drafts: [{ id: 'main', name: 'Основной черновик', fields: migrated, updatedAt: nowIso() }], customerCards: [], signerCards: [], executorSignerCards: [], serviceTemplates: [], lastAct: null };
+      return { version: 3, updatedAt: nowIso(), activeDraftId: 'main', drafts: [{ id: 'main', name: 'Основной черновик', fields: migrated, updatedAt: nowIso() }], customerCards: [], executorSignerCards: [], serviceTemplates: [], lastAct: null };
     }
     function renderDrafts() {
       draftSelect.replaceChildren(...state.drafts.map(draft => new Option(draft.name, draft.id)));
@@ -179,11 +179,10 @@
       document.getElementById('activeDraftLabel').textContent = draft?.name || 'Основной черновик';
       document.getElementById('deleteDraftBtn').disabled = state.drafts.length === 1;
     }
-    function signerLabel(card) { return `${card.name} - ${card.position} - ${card.basis}`; }
+    function signerLabel(card) { return card.name; }
     const libraryConfigs = {
-      customer: { inputId: 'customerCardSelect', optionsId: 'customerCardOptions', updateId: 'updateCustomerBtn', deleteId: 'deleteCustomerBtn', source: () => state.customerCards, key: item => item.id, primary: item => item.customer, secondary: () => '', apply: item => { updateField('customer', item.customer); fields.customer.dispatchEvent(new Event('input', { bubbles: true })); } },
-      signer: { inputId: 'signerCardSelect', optionsId: 'signerCardOptions', updateId: 'updateSignerBtn', deleteId: 'deleteSignerBtn', source: () => state.signerCards, key: item => item.id, primary: item => item.name, secondary: item => `${item.position} - ${item.basis}`, apply: item => { updateField('customerPosition', item.position); updateField('customerName', item.name); updateField('customerBasis', item.basis); fields.customerName.dispatchEvent(new Event('input', { bubbles: true })); } },
-      executorSigner: { inputId: 'executorSignerCardSelect', optionsId: 'executorSignerCardOptions', updateId: 'updateExecutorSignerBtn', deleteId: 'deleteExecutorSignerBtn', source: () => state.executorSignerCards, key: item => item.id, primary: item => item.name, secondary: item => `${item.position} - ${item.basis}`, apply: item => { updateField('assocPosition', item.position); updateField('assocName', item.name); updateField('assocBasis', item.basis); fields.assocName.dispatchEvent(new Event('input', { bubbles: true })); } },
+      customer: { inputId: 'customerCardSelect', optionsId: 'customerCardOptions', updateId: 'updateCustomerBtn', deleteId: 'deleteCustomerBtn', source: () => state.customerCards, key: item => item.id, primary: item => item.customer, secondary: item => [item.name, item.position].filter(Boolean).join(' - '), apply: item => { updateField('customer', item.customer); updateField('customerPosition', item.position); updateField('customerName', item.name); updateField('customerBasis', item.basis); fields.customer.dispatchEvent(new Event('input', { bubbles: true })); fields.customerName.dispatchEvent(new Event('input', { bubbles: true })); } },
+      executorSigner: { inputId: 'executorSignerCardSelect', optionsId: 'executorSignerCardOptions', updateId: 'updateExecutorSignerBtn', deleteId: 'deleteExecutorSignerBtn', source: () => state.executorSignerCards, key: item => item.id, primary: item => item.name, secondary: () => '', apply: item => { updateField('assocPosition', item.position); updateField('assocName', item.name); updateField('assocBasis', item.basis); fields.assocName.dispatchEvent(new Event('input', { bubbles: true })); } },
       service: { inputId: 'serviceTemplateSelect', optionsId: 'serviceTemplateOptions', updateId: 'updateServiceBtn', deleteId: 'deleteServiceBtn', source: () => state.serviceTemplates, key: item => item, primary: item => item, secondary: () => '', apply: item => { updateField('serviceName', item); fields.serviceName.dispatchEvent(new Event('input', { bubbles: true })); } }
     };
     function libraryItem(kind, key) {
@@ -261,9 +260,10 @@
     }
     function renderPrivacy() {
       storageToggle.checked = prefs.storageEnabled;
-      const installed = window.__ACTS_INSTALLED__ === true;
-      retentionLabel.textContent = installed ? 'Срок хранения: без ограничения' : `Срок хранения: ${prefs.retentionDays === 365 ? '1 год' : `${prefs.retentionDays} дней`}`;
-      privacyText.textContent = !prefs.storageEnabled ? 'Сохранение отключено. Данные существуют только до закрытия этой вкладки и никуда не передаются.' : installed ? 'В установленном приложении данные хранятся без ограничения срока и никуда не передаются.' : `Данные хранятся только в этом браузере не более ${prefs.retentionDays === 365 ? '1 года' : `${prefs.retentionDays} дней`} и никуда не передаются.`;
+      retentionSelect.value = String(prefs.retentionDays);
+      retentionSelect.disabled = !prefs.storageEnabled;
+      const retentionText = prefs.retentionDays === 'always' ? 'без ограничения срока' : prefs.retentionDays === 365 ? 'не более 1 года' : prefs.retentionDays === 183 ? 'не более полугода' : 'не более 30 дней';
+      privacyText.textContent = !prefs.storageEnabled ? 'Сохранение отключено. Данные существуют только до закрытия этой вкладки и никуда не передаются.' : `Данные хранятся только на этом компьютере ${retentionText} и никуда не передаются.`;
     }
     function toast(message, tone = 'success') {
       const root = document.getElementById('toast');
@@ -278,31 +278,25 @@
       fields[id].value = value == null ? '' : String(value);
     }
     function addCustomer(silent = false) {
-      const customer = normalize(fields.customer.value);
-      if (!customer) { if (!silent) toast('Сначала укажите наименование Заказчика.', 'warn'); return; }
-      const found = state.customerCards.find(card => card.customer.toLocaleLowerCase('ru') === customer.toLocaleLowerCase('ru'));
-      const card = found || { id: uid(), customer, updatedAt: nowIso() };
-      if (found) found.updatedAt = nowIso(); else state.customerCards.unshift(card);
+      const values = { customer: normalize(fields.customer.value), position: normalize(fields.customerPosition.value), name: normalize(fields.customerName.value), basis: normalize(fields.customerBasis.value) };
+      if (!values.customer || !values.position || !values.name || !values.basis) { if (!silent) toast('Заполните все сведения о Заказчике и его представителе.', 'warn'); return; }
+      const found = state.customerCards.find(card => card.customer.toLocaleLowerCase('ru') === values.customer.toLocaleLowerCase('ru'));
+      if (found) {
+        selectedLibrary.customer = found.id; document.getElementById('customerCardSelect').value = libraryLabel(libraryConfigs.customer, found); renderLibraries();
+        if (!silent) toast('Карточка этого Заказчика уже существует. Для изменений нажмите «Обновить».', 'warn');
+        return;
+      }
+      const card = { id: uid(), ...values, updatedAt: nowIso() };
+      state.customerCards.unshift(card);
       state.customerCards = state.customerCards.slice(0, 500);
-      selectedLibrary.customer = card.id; document.getElementById('customerCardSelect').value = card.customer;
+      selectedLibrary.customer = card.id; document.getElementById('customerCardSelect').value = libraryLabel(libraryConfigs.customer, card);
       persistState(); renderLibraries();
       if (!silent) toast('Карточка заказчика сохранена.');
-    }
-    function addSigner(silent = false) {
-      const card = { position: normalize(fields.customerPosition.value), name: normalize(fields.customerName.value), basis: normalize(fields.customerBasis.value) };
-      if (!card.position || !card.name || !card.basis) { if (!silent) toast('Заполните должность, имя и основание полномочий подписанта.', 'warn'); return; }
-      const found = state.signerCards.find(item => item.name.toLocaleLowerCase('ru') === card.name.toLocaleLowerCase('ru') && item.position.toLocaleLowerCase('ru') === card.position.toLocaleLowerCase('ru'));
-      const saved = found || { id: uid(), ...card, updatedAt: nowIso() };
-      if (found) Object.assign(found, card, { updatedAt: nowIso() }); else state.signerCards.unshift(saved);
-      state.signerCards = state.signerCards.slice(0, 500);
-      selectedLibrary.signer = saved.id; document.getElementById('signerCardSelect').value = signerLabel(saved);
-      persistState(); renderLibraries();
-      if (!silent) toast('Карточка подписанта сохранена.');
     }
     function addExecutorSigner(silent = false) {
       const card = { position: normalize(fields.assocPosition.value), name: normalize(fields.assocName.value), basis: normalize(fields.assocBasis.value) };
       if (!card.position || !card.name || !card.basis) { if (!silent) toast('Заполните должность, имя и основание полномочий подписанта Исполнителя.', 'warn'); return; }
-      const found = state.executorSignerCards.find(item => item.name.toLocaleLowerCase('ru') === card.name.toLocaleLowerCase('ru') && item.position.toLocaleLowerCase('ru') === card.position.toLocaleLowerCase('ru'));
+      const found = state.executorSignerCards.find(item => item.name.toLocaleLowerCase('ru') === card.name.toLocaleLowerCase('ru'));
       const saved = found || { id: uid(), ...card, updatedAt: nowIso() };
       if (found) Object.assign(found, card, { updatedAt: nowIso() }); else state.executorSignerCards.unshift(saved);
       state.executorSignerCards = state.executorSignerCards.slice(0, 500);
@@ -319,22 +313,23 @@
       if (!silent) toast('Формулировка добавлена в типовые.');
     }
     function updateCustomer() {
-      const card = libraryItem('customer', selectedLibrary.customer), customer = normalize(fields.customer.value);
+      const card = libraryItem('customer', selectedLibrary.customer);
+      const values = { customer: normalize(fields.customer.value), position: normalize(fields.customerPosition.value), name: normalize(fields.customerName.value), basis: normalize(fields.customerBasis.value) };
       if (!card) { toast('Сначала выберите сохраненного Заказчика из списка.', 'warn'); return; }
-      if (!customer) { toast('Сначала укажите наименование Заказчика.', 'warn'); return; }
-      if (state.customerCards.some(item => item.id !== card.id && item.customer.toLocaleLowerCase('ru') === customer.toLocaleLowerCase('ru'))) { toast('Заказчик с таким наименованием уже сохранен.', 'warn'); return; }
-      Object.assign(card, { customer, updatedAt: nowIso() }); document.getElementById('customerCardSelect').value = customer;
+      if (!values.customer || !values.position || !values.name || !values.basis) { toast('Заполните все сведения о Заказчике и его представителе.', 'warn'); return; }
+      if (state.customerCards.some(item => item.id !== card.id && item.customer.toLocaleLowerCase('ru') === values.customer.toLocaleLowerCase('ru'))) { toast('Заказчик с таким наименованием уже сохранен.', 'warn'); return; }
+      Object.assign(card, values, { updatedAt: nowIso() }); document.getElementById('customerCardSelect').value = libraryLabel(libraryConfigs.customer, card);
       persistState(); renderLibraries(); toast('Карточка заказчика обновлена.');
     }
     function updateSigner(kind) {
-      const executorSide = kind === 'executorSigner', card = libraryItem(kind, selectedLibrary[kind]);
-      if (!card) { toast(`Сначала выберите сохраненного подписанта ${executorSide ? 'Исполнителя' : 'Заказчика'} из списка.`, 'warn'); return; }
-      const values = executorSide ? { position: normalize(fields.assocPosition.value), name: normalize(fields.assocName.value), basis: normalize(fields.assocBasis.value) } : { position: normalize(fields.customerPosition.value), name: normalize(fields.customerName.value), basis: normalize(fields.customerBasis.value) };
+      const card = libraryItem(kind, selectedLibrary[kind]);
+      if (!card) { toast('Сначала выберите сохраненного подписанта Исполнителя из списка.', 'warn'); return; }
+      const values = { position: normalize(fields.assocPosition.value), name: normalize(fields.assocName.value), basis: normalize(fields.assocBasis.value) };
       if (!values.position || !values.name || !values.basis) { toast('Заполните должность, имя и основание полномочий подписанта.', 'warn'); return; }
-      const source = executorSide ? state.executorSignerCards : state.signerCards;
-      if (source.some(item => item.id !== card.id && item.name.toLocaleLowerCase('ru') === values.name.toLocaleLowerCase('ru') && item.position.toLocaleLowerCase('ru') === values.position.toLocaleLowerCase('ru'))) { toast('Такой подписант уже сохранен.', 'warn'); return; }
+      const source = state.executorSignerCards;
+      if (source.some(item => item.id !== card.id && item.name.toLocaleLowerCase('ru') === values.name.toLocaleLowerCase('ru'))) { toast('Подписант с таким ФИО уже сохранен.', 'warn'); return; }
       Object.assign(card, values, { updatedAt: nowIso() }); document.getElementById(libraryConfigs[kind].inputId).value = signerLabel(card);
-      persistState(); renderLibraries(); toast(`Карточка подписанта ${executorSide ? 'Исполнителя' : 'Заказчика'} обновлена.`);
+      persistState(); renderLibraries(); toast('Карточка подписанта Исполнителя обновлена.');
     }
     function updateService() {
       const oldValue = libraryItem('service', selectedLibrary.service), service = normalize(fields.serviceName.value);
@@ -350,7 +345,6 @@
       const name = config.primary(item);
       if (!confirm(`Удалить сохраненную запись «${name}»?`)) return;
       if (kind === 'customer') state.customerCards = state.customerCards.filter(card => card.id !== item.id);
-      else if (kind === 'signer') state.signerCards = state.signerCards.filter(card => card.id !== item.id);
       else if (kind === 'executorSigner') state.executorSignerCards = state.executorSignerCards.filter(card => card.id !== item.id);
       else state.serviceTemplates = state.serviceTemplates.filter(value => value !== item);
       selectedLibrary[kind] = null; document.getElementById(config.inputId).value = '';
@@ -413,10 +407,6 @@
       document.getElementById('defaultCity').value = prefs.defaults.city || '';
       document.getElementById('defaultServicePlace').value = prefs.defaults.servicePlace || '';
       document.getElementById('defaultDateMode').value = prefs.defaults.dateMode || 'blank';
-      const retention = document.getElementById('retentionDays'), installed = window.__ACTS_INSTALLED__ === true;
-      retention.querySelector('option[value="unlimited"]')?.remove();
-      if (installed) { retention.appendChild(new Option('Без ограничения - приложение', 'unlimited')); retention.value = 'unlimited'; retention.disabled = true; }
-      else { retention.disabled = false; retention.value = String(prefs.retentionDays); }
       document.getElementById('defaultsModal').hidden = false;
       document.querySelector('.app-shell').setAttribute('inert', '');
       setTimeout(() => document.getElementById('defaultCity').focus());
@@ -427,7 +417,6 @@
     }
     function saveDefaults() {
       prefs.defaults = { city: normalize(document.getElementById('defaultCity').value), servicePlace: normalize(document.getElementById('defaultServicePlace').value), dateMode: document.getElementById('defaultDateMode').value };
-      if (!window.__ACTS_INSTALLED__) prefs.retentionDays = Number(document.getElementById('retentionDays').value) || 30;
       persistPrefs(); persistState(); renderPrivacy(); closeDefaults();
       toast(prefs.storageEnabled ? 'Значения по умолчанию сохранены.' : 'Значения будут действовать только в этой вкладке.');
     }
@@ -445,6 +434,12 @@
         toast('Локальное сохранение включено.');
       }
       renderPrivacy();
+    }
+    function changeRetention() {
+      const value = retentionSelect.value;
+      prefs.retentionDays = value === 'always' ? 'always' : [30, 183, 365].includes(Number(value)) ? Number(value) : 30;
+      persistPrefs(); persistState(); renderPrivacy();
+      toast(`Срок хранения: ${retentionSelect.selectedOptions[0]?.textContent || '30 дней'}.`);
     }
     function semanticErrors() {
       const errors = [];
@@ -569,7 +564,6 @@
           activeDraftId: state.activeDraftId,
           drafts: state.drafts,
           customerCards: state.customerCards,
-          signerCards: state.signerCards,
           executorSignerCards: state.executorSignerCards,
           serviceTemplates: state.serviceTemplates,
           lastAct: state.lastAct
@@ -594,6 +588,22 @@
       if (!Array.isArray(source)) return [];
       return source.slice(0, 500).map(item => ({ id: uid(), name: normalize(item?.name).slice(0, 120), position: normalize(item?.position).slice(0, 180), basis: normalize(item?.basis).slice(0, 220), updatedAt: nowIso() })).filter(item => item.name && item.position && item.basis);
     }
+    function sanitizedCustomerCards(source, drafts = [], legacySigners = []) {
+      if (!Array.isArray(source)) return [];
+      const normalizedSigners = sanitizedSignerCards(legacySigners);
+      return source.slice(0, 500).map(item => {
+        const customer = normalize(item?.customer).slice(0, 180);
+        const matchingDraft = [...drafts].reverse().find(draft => normalize(draft?.fields?.customer).toLocaleLowerCase('ru') === customer.toLocaleLowerCase('ru') && normalize(draft?.fields?.customerName));
+        const legacySigner = matchingDraft ? null : source.length === 1 && normalizedSigners.length === 1 ? normalizedSigners[0] : null;
+        return {
+          id: item?.id || uid(), customer,
+          position: normalize(item?.position || matchingDraft?.fields?.customerPosition || legacySigner?.position).slice(0, 180),
+          name: normalize(item?.name || matchingDraft?.fields?.customerName || legacySigner?.name).slice(0, 120),
+          basis: normalize(item?.basis || matchingDraft?.fields?.customerBasis || legacySigner?.basis).slice(0, 220),
+          updatedAt: item?.updatedAt || nowIso()
+        };
+      }).filter(item => item.customer);
+    }
     function parseBackup(text) {
       let parsed;
       try { parsed = JSON.parse(text); } catch (_) { throw new Error('Файл резервной копии содержит некорректный JSON.'); }
@@ -603,13 +613,13 @@
       const drafts = sourceDrafts.map((draft, index) => ({ id: `restored-${index}-${Date.now().toString(36)}`, name: normalize(draft?.name).slice(0, 60) || `Черновик ${index + 1}`, fields: sanitizedFields(draft?.fields), updatedAt: nowIso() }));
       const activeIndex = sourceDrafts.findIndex(draft => draft?.id === parsed.data.activeDraftId);
       const defaults = parsed.preferences?.defaults || {};
-      const retention = Number(parsed.preferences?.retentionDays);
+      const retentionRaw = parsed.preferences?.retentionDays;
+      const retention = String(retentionRaw) === 'always' ? 'always' : Number(retentionRaw);
       return {
-        prefs: { defaults: { city: normalize(defaults.city).slice(0, 100), servicePlace: normalize(defaults.servicePlace).slice(0, 180), dateMode: defaults.dateMode === 'today' ? 'today' : 'blank' }, retentionDays: [7, 30, 90, 365].includes(retention) ? retention : prefs.retentionDays },
+        prefs: { defaults: { city: normalize(defaults.city).slice(0, 100), servicePlace: normalize(defaults.servicePlace).slice(0, 180), dateMode: defaults.dateMode === 'today' ? 'today' : 'blank' }, retentionDays: retention === 'always' || [30, 183, 365].includes(retention) ? retention : prefs.retentionDays },
         state: {
-          version: 2, updatedAt: nowIso(), activeDraftId: drafts[Math.max(0, activeIndex)]?.id || drafts[0].id, drafts,
-          customerCards: (Array.isArray(parsed.data.customerCards) ? parsed.data.customerCards : []).slice(0, 500).map(item => ({ id: uid(), customer: normalize(item?.customer).slice(0, 180), updatedAt: nowIso() })).filter(item => item.customer),
-          signerCards: sanitizedSignerCards(parsed.data.signerCards),
+          version: 3, updatedAt: nowIso(), activeDraftId: drafts[Math.max(0, activeIndex)]?.id || drafts[0].id, drafts,
+          customerCards: sanitizedCustomerCards(parsed.data.customerCards, drafts, parsed.data.signerCards),
           executorSignerCards: sanitizedSignerCards(parsed.data.executorSignerCards),
           serviceTemplates: (Array.isArray(parsed.data.serviceTemplates) ? parsed.data.serviceTemplates : []).slice(0, 500).map(item => normalize(item).slice(0, 1200)).filter(Boolean),
           lastAct: parsed.data.lastAct?.fields ? { fields: sanitizedFields(parsed.data.lastAct.fields), exportedAt: nowIso() } : null
@@ -645,18 +655,16 @@
     document.getElementById('deleteDraftBtn').onclick = deleteDraft;
     document.getElementById('repeatActBtn').onclick = repeatLast;
     document.getElementById('saveCustomerBtn').onclick = () => addCustomer();
-    document.getElementById('saveSignerBtn').onclick = () => addSigner();
     document.getElementById('saveExecutorSignerBtn').onclick = () => addExecutorSigner();
     document.getElementById('updateCustomerBtn').onclick = updateCustomer;
     document.getElementById('deleteCustomerBtn').onclick = () => deleteLibrary('customer');
-    document.getElementById('updateSignerBtn').onclick = () => updateSigner('signer');
-    document.getElementById('deleteSignerBtn').onclick = () => deleteLibrary('signer');
     document.getElementById('updateExecutorSignerBtn').onclick = () => updateSigner('executorSigner');
     document.getElementById('deleteExecutorSignerBtn').onclick = () => deleteLibrary('executorSigner');
     document.getElementById('saveServiceBtn').onclick = () => addService();
     document.getElementById('updateServiceBtn').onclick = updateService;
     document.getElementById('deleteServiceBtn').onclick = () => deleteLibrary('service');
     storageToggle.onchange = toggleStorage;
+    retentionSelect.onchange = changeRetention;
     document.getElementById('defaultsBtn').onclick = openDefaults;
     document.getElementById('cancelDefaultsBtn').onclick = closeDefaults;
     document.querySelector('[data-close-defaults]').onclick = closeDefaults;
@@ -674,13 +682,13 @@
     window.addEventListener('appinstalled', () => {
       try { localStorage.setItem(INSTALLED_KEY, '1'); } catch (_) {}
       window.__ACTS_INSTALLED__ = true; renderPrivacy();
-      toast('Приложение установлено. Срок хранения данных больше не ограничен.');
+      toast('Приложение установлено. Настройка срока хранения сохранена.');
     });
     window.addEventListener('acts:cleared', () => { const values = defaultFields(); restore(values); saveCurrent(true); });
     window.addEventListener('acts:restored', () => saveCurrent(true));
     window.addEventListener('acts:exported', event => {
       state.lastAct = { fields: event.detail.fields, exportedAt: nowIso() };
-      addCustomer(true); addSigner(true); if (event.detail.fields.executor === 'rrPoa') addExecutorSigner(true); saveCurrent(true); renderLibraries();
+      addCustomer(true); if (event.detail.fields.executor === 'rrPoa') addExecutorSigner(true); saveCurrent(true); renderLibraries();
     });
     document.addEventListener('keydown', event => {
       const nameModal = document.getElementById('draftNameModal'), defaultsModal = document.getElementById('defaultsModal');

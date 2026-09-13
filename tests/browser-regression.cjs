@@ -10,7 +10,7 @@ const { chromium } = require('playwright');
 const root = path.resolve(__dirname, '..');
 const port = Number(process.env.QA_PORT || 4173);
 const baseUrl = `http://127.0.0.1:${port}/`;
-const outputDir = process.env.QA_OUTPUT || path.join(os.tmpdir(), 'acts-v2.9-qa');
+const outputDir = process.env.QA_OUTPUT || path.join(os.tmpdir(), 'acts-v3.0-qa');
 fs.mkdirSync(outputDir, { recursive: true });
 
 const validData = {
@@ -59,9 +59,9 @@ async function fill(page, data = validData) {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(baseUrl, { waitUntil: 'networkidle' });
 
-    assert.equal(await page.evaluate(() => window.__ACTS_TEST_API__?.APP_VERSION), '2.9');
+    assert.equal(await page.evaluate(() => window.__ACTS_TEST_API__?.APP_VERSION), '3.0');
     const iconSystem = await page.evaluate(() => ({ pictograms: document.querySelectorAll('body img.ui-pictogram').length, total: document.querySelectorAll('body svg.ui-icon').length, inconsistent: document.querySelectorAll('body svg:not(.ui-icon)').length, inlinePaths: document.querySelectorAll('body svg path, body svg circle, body svg rect').length, externalUses: [...document.querySelectorAll('body svg.ui-icon use')].every(use => use.getAttribute('href')?.startsWith('assets/icons-v2.9.svg#')) }));
-    assert.equal(iconSystem.pictograms, 8, 'main product symbols must use object-based illustrated pictograms');
+    assert.equal(iconSystem.pictograms, 7, 'main product symbols must use object-based illustrated pictograms');
     assert.ok(iconSystem.total > 0, 'utility controls must keep the unified icon system');
     assert.equal(iconSystem.inconsistent, 0); assert.equal(iconSystem.inlinePaths, 0); assert.equal(iconSystem.externalUses, true);
     await page.locator('#workTools').evaluate(element => { element.open = true; });
@@ -71,6 +71,21 @@ async function fill(page, data = validData) {
       assert.equal(await page.locator('#executorPickerLabel').innerText(), await page.locator(`#executor option[value="${executor}"]`).innerText());
     }
     await page.locator('#executor').selectOption('rr');
+    await page.locator('#poaFields').waitFor({ state: 'hidden' });
+    assert.equal(await page.locator('#poaFields').isVisible(), false, 'executor signer library must be hidden for the regular Association executor');
+    await page.locator('#executor').selectOption('rrPoa');
+    await page.locator('#poaFields').waitFor({ state: 'visible' });
+    assert.equal(await page.locator('#poaFields').isVisible(), true, 'executor signer library must be shown for the power-of-attorney executor');
+    assert.equal(await page.locator('.poa-heading strong').innerText(), 'Сведения о представителе');
+    assert.equal(await page.locator('.poa-heading small').count(), 0);
+    assert.equal(await page.locator('.poa-heading img.ui-pictogram').count(), 1, 'power-of-attorney heading must retain its illustrated pictogram');
+    assert.equal(await page.locator('#assocPosition').getAttribute('placeholder'), 'директор по сертификации');
+    assert.equal(await page.locator('#executorSignerCardSelect').getAttribute('placeholder'), 'Начните вводить имя');
+    assert.equal(await page.evaluate(() => Boolean(document.querySelector('#assocName').compareDocumentPosition(document.querySelector('#assocPosition')) & Node.DOCUMENT_POSITION_FOLLOWING)), true, 'executor representative name must precede position');
+    const signerRow = await page.evaluate(() => { const field = document.getElementById('executorSignerCardSelect').getBoundingClientRect(), actions = document.getElementById('saveExecutorSignerBtn').closest('.library-actions').getBoundingClientRect(); return { fieldTop: field.top, fieldBottom: field.bottom, actionsTop: actions.top, actionsBottom: actions.bottom }; });
+    assert.ok(Math.max(signerRow.fieldTop, signerRow.actionsTop) < Math.min(signerRow.fieldBottom, signerRow.actionsBottom), 'executor signer actions must be on the same row as the picker');
+    await page.locator('#executor').selectOption('rr');
+    await page.locator('#poaFields').waitFor({ state: 'hidden' });
     await page.locator('#executorPickerButton').click();
     assert.equal(await page.locator('#executorPickerOptions .library-option').count(), 4);
     assert.equal(await page.locator('#executorPickerOptions .library-option[aria-selected="true"]').getAttribute('data-value'), 'rr');
@@ -81,6 +96,45 @@ async function fill(page, data = validData) {
     await page.locator('#executor').selectOption('rr');
     assert.equal(await page.getByText('Ставка определяется выбранным исполнителем').count(), 0);
     assert.equal(await page.locator('.section-heading').count(), 3);
+    assert.deepEqual(await page.locator('.section-heading strong').allInnerTexts(), ['Исполнитель', 'Заказчик', 'Договор']);
+    assert.equal(await page.locator('.section-heading small').count(), 0, 'section headings must not have explanatory subtitles');
+    assert.equal(await page.locator('#customer').evaluate(element => element.closest('.form-section')?.querySelector('.section-heading strong')?.textContent), 'Заказчик');
+    assert.equal(await page.locator('#contractNumber').evaluate(element => element.closest('.form-section')?.querySelector('.section-heading strong')?.textContent), 'Договор');
+    assert.equal(await page.locator('#amount').evaluate(element => element.closest('.form-section')?.querySelector('.section-heading strong')?.textContent), 'Договор');
+    assert.equal(await page.locator('#actDate').evaluate(element => element.closest('.form-section')?.querySelector('.section-heading strong')?.textContent), 'Договор');
+    assert.equal(await page.locator('#city').evaluate(element => element.closest('.form-section')?.querySelector('.section-heading strong')?.textContent), 'Договор');
+    assert.equal(await page.locator('label[for="contractDate"]').innerText(), 'Дата договора');
+    assert.equal(await page.evaluate(() => Boolean(document.querySelector('#serviceName').compareDocumentPosition(document.querySelector('#amount')) & Node.DOCUMENT_POSITION_FOLLOWING)), true, 'cost must follow the supplied services');
+    const contractOrder = await page.evaluate(() => ['contractNumber', 'contractDate', 'city', 'serviceTemplateSelect', 'serviceName', 'amount', 'actDate', 'servicePlace'].map(id => document.getElementById(id)).every((element, index, elements) => index === 0 || Boolean(elements[index - 1].compareDocumentPosition(element) & Node.DOCUMENT_POSITION_FOLLOWING)));
+    assert.equal(contractOrder, true, 'contract block fields must follow the approved order');
+    assert.deepEqual(await page.locator('#saveCustomerBtn, #saveExecutorSignerBtn, #saveServiceBtn').allInnerTexts(), ['Создать', 'Создать', 'Создать']);
+    assert.equal(await page.locator('#signerCardSelect, #signerCardOptions, #saveSignerBtn, #updateSignerBtn, #deleteSignerBtn').count(), 0, 'customer signer must not exist as a separate library');
+    assert.equal(await page.evaluate(() => Boolean(document.querySelector('#executorPickerButton').compareDocumentPosition(document.querySelector('#executorSignerCardSelect')) & Node.DOCUMENT_POSITION_FOLLOWING)), true, 'executor signer library must follow executor selection');
+    assert.equal(await page.evaluate(() => Boolean(document.querySelector('#executorSignerCardSelect').compareDocumentPosition(document.querySelector('#actDate')) & Node.DOCUMENT_POSITION_FOLLOWING)), true, 'executor signer library must precede act details');
+    assert.equal(await page.locator('#city').getAttribute('placeholder'), 'г. Санкт-Петербург');
+    assert.equal(await page.locator('#servicePlace').getAttribute('placeholder'), 'г. Санкт-Петербург, Россия');
+    assert.equal(await page.locator('#defaultCity').getAttribute('placeholder'), 'г. Санкт-Петербург');
+    assert.equal(await page.locator('#defaultServicePlace').getAttribute('placeholder'), 'г. Санкт-Петербург, Россия');
+    assert.equal(await page.locator('.work-tools-summary strong').innerText(), 'Настройки сервиса');
+    assert.equal(await page.locator('.work-tools-summary em').count(), 0);
+    assert.equal(await page.locator('label[for="draftSelect"]').count(), 0);
+    assert.equal(await page.locator('#mobilePreviewQuickBtn').count(), 0);
+    assert.equal(await page.locator('#amountWordsShown, #vatShown, #vatAmountShown, .vat-card').count(), 0, 'duplicate cost and VAT breakdown must not be shown in the form');
+    const finalFieldRow = await page.evaluate(() => ['amount', 'actDate', 'servicePlace'].map(id => ({ id, top: document.getElementById(id).getBoundingClientRect().top })));
+    assert.deepEqual(finalFieldRow.map(item => item.id), ['amount', 'actDate', 'servicePlace']);
+    assert.ok(Math.max(...finalFieldRow.map(item => item.top)) - Math.min(...finalFieldRow.map(item => item.top)) <= 1, 'cost, act date and service place must share one desktop row');
+    const settingsSelectMetrics = await page.evaluate(() => {
+      const fieldFontSize = parseFloat(getComputedStyle(document.getElementById('city')).fontSize);
+      return ['draftSelect', 'retentionDays'].map(id => {
+        const element = document.getElementById(id);
+        return { height: element.getBoundingClientRect().height, fontSize: parseFloat(getComputedStyle(element).fontSize), fieldFontSize };
+      });
+    });
+    assert.ok(settingsSelectMetrics.every(metric => Math.abs(metric.height - 36) <= 1), 'settings selects must use the same control height');
+    assert.ok(settingsSelectMetrics.every(metric => Math.abs(metric.fontSize - metric.fieldFontSize) <= 0.1), 'settings selects must use the same font size as the form fields');
+    const actionWidths = await page.evaluate(() => { const download = document.getElementById('downloadXlsxBtn').getBoundingClientRect(), reset = document.getElementById('resetBtn').getBoundingClientRect(); return { download: download.width, reset: reset.width, topDifference: Math.abs(download.top - reset.top) }; });
+    assert.ok(actionWidths.download / actionWidths.reset > 1.85 && actionWidths.download / actionWidths.reset < 2.15, 'download and reset actions must use a 2/3 to 1/3 ratio');
+    assert.ok(actionWidths.topDifference <= 1, 'download and reset actions must stay on one row');
     for (const legend of await page.locator('legend.semantic-legend').all()) {
       const box = await legend.boundingBox(); assert.ok(box && box.width <= 1 && box.height <= 1, 'semantic legend must be visually hidden');
     }
@@ -140,21 +194,24 @@ async function fill(page, data = validData) {
     assert.equal(await page.locator('#serviceName').inputValue(), validData.serviceName);
 
     await page.locator('#saveCustomerBtn').click();
-    await page.locator('#saveSignerBtn').click();
     await page.locator('#saveServiceBtn').click();
     assert.equal(await page.locator('#customerCardOptions .library-option').count(), 1);
-    assert.equal(await page.locator('#signerCardOptions .library-option').count(), 1);
     assert.equal(await page.locator('#serviceTemplateOptions .library-option').count(), 1);
-    assert.equal(await page.locator('label[for="serviceTemplateSelect"]').innerText(), 'Типовые услуги');
-    await page.locator('#customer').fill('');
+    const libraryTypography = await page.locator('#customerCardOptions .library-option-primary').evaluate(element => ({ fontSize: parseFloat(getComputedStyle(element).fontSize), fontWeight: Number(getComputedStyle(element).fontWeight), fieldFontSize: parseFloat(getComputedStyle(document.getElementById('customerCardSelect')).fontSize) }));
+    assert.equal(libraryTypography.fontSize, libraryTypography.fieldFontSize, 'library entries must use the same font size as their fields');
+    assert.ok(libraryTypography.fontWeight <= 500, 'library entries must not introduce heavy bold text');
+    assert.deepEqual(await page.evaluate(() => { const card = window.__ACTS_WORKSPACE_TEST_API__.getState().customerCards[0]; return { customer: card.customer, position: card.position, name: card.name, basis: card.basis }; }), { customer: validData.customer, position: validData.customerPosition, name: validData.customerName, basis: validData.customerBasis });
+    assert.equal(await page.locator('label[for="serviceTemplateSelect"]').count(), 0);
+    assert.equal(await page.locator('.service-entry-title label').innerText(), 'Наименование оказанных услуг по договору');
+    assert.equal(await page.locator('label[for="serviceName"]').count(), 1);
+    assert.equal(await page.getByText('Введите вручную', { exact: true }).count(), 0);
+    await page.locator('#customer').fill(''); await page.locator('#customerPosition').fill(''); await page.locator('#customerName').fill(''); await page.locator('#customerBasis').fill('');
     await page.locator('#customerCardSelect').fill(validData.customer);
     await page.locator('#customerCardSelect').press('ArrowDown');
     await page.locator('#customerCardSelect').press('Enter');
     assert.equal(await page.locator('#customer').inputValue(), validData.customer);
-    await page.locator('#customerPosition').fill(''); await page.locator('#customerName').fill(''); await page.locator('#customerBasis').fill('');
-    await page.locator('#signerCardSelect').fill(`${validData.customerName} - ${validData.customerPosition} - ${validData.customerBasis}`);
-    await page.locator('#signerCardOptions .library-option').click();
     assert.equal(await page.locator('#customerPosition').inputValue(), validData.customerPosition);
+    assert.equal(await page.locator('#customerName').inputValue(), validData.customerName);
     assert.equal(await page.locator('#customerBasis').inputValue(), validData.customerBasis);
     await page.locator('#serviceName').fill('');
     await page.locator('#serviceTemplateSelect').fill(validData.serviceName);
@@ -169,18 +226,12 @@ async function fill(page, data = validData) {
     await page.emulateMedia({ colorScheme: 'light' });
 
     await page.locator('#customer').fill('ООО «Исправленный заказчик»');
+    await page.locator('#customerBasis').fill('доверенности № 10');
     await page.locator('#updateCustomerBtn').click();
-    assert.equal((await page.evaluate(() => window.__ACTS_WORKSPACE_TEST_API__.getState())).customerCards[0].customer, 'ООО «Исправленный заказчик»');
+    assert.deepEqual(await page.evaluate(() => { const card = window.__ACTS_WORKSPACE_TEST_API__.getState().customerCards[0]; return { customer: card.customer, position: card.position, name: card.name, basis: card.basis }; }), { customer: 'ООО «Исправленный заказчик»', position: validData.customerPosition, name: validData.customerName, basis: 'доверенности № 10' });
     page.once('dialog', dialog => dialog.accept()); await page.locator('#deleteCustomerBtn').click();
     assert.equal((await page.evaluate(() => window.__ACTS_WORKSPACE_TEST_API__.getState())).customerCards.length, 0);
-    await page.locator('#customer').fill(validData.customer); await page.locator('#saveCustomerBtn').click();
-
-    await page.locator('#customerBasis').fill('доверенности № 10');
-    await page.locator('#updateSignerBtn').click();
-    assert.equal((await page.evaluate(() => window.__ACTS_WORKSPACE_TEST_API__.getState())).signerCards[0].basis, 'доверенности № 10');
-    page.once('dialog', dialog => dialog.accept()); await page.locator('#deleteSignerBtn').click();
-    assert.equal((await page.evaluate(() => window.__ACTS_WORKSPACE_TEST_API__.getState())).signerCards.length, 0);
-    await page.locator('#customerBasis').fill(validData.customerBasis); await page.locator('#saveSignerBtn').click();
+    await page.locator('#customer').fill(validData.customer); await page.locator('#customerPosition').fill(validData.customerPosition); await page.locator('#customerName').fill(validData.customerName); await page.locator('#customerBasis').fill(validData.customerBasis); await page.locator('#saveCustomerBtn').click();
 
     await page.locator('#serviceName').fill(`${validData.serviceName} - уточнено`);
     await page.locator('#updateServiceBtn').click();
@@ -213,8 +264,11 @@ async function fill(page, data = validData) {
         assert.equal(await page.locator('#assocBasis').inputValue(), 'доверенности № 15 от 1 сентября 2026 г.');
         assert.equal(await page.locator('#executorSignerCardOptions .library-option').count(), 1);
         await page.locator('#assocPosition').fill(''); await page.locator('#assocName').fill(''); await page.locator('#assocBasis').fill('');
-        await page.locator('#executorSignerCardSelect').fill('П.П. Петров - директор по сертификации - доверенности № 15 от 1 сентября 2026 г.');
+        assert.equal(await page.locator('#executorSignerCardOptions .library-option').innerText(), 'П.П. Петров');
+        assert.equal(await page.locator('#executorSignerCardOptions .library-option-secondary').count(), 0);
+        await page.locator('#executorSignerCardSelect').fill('П.П. Петров');
         await page.locator('#executorSignerCardOptions .library-option').click();
+        assert.equal(await page.locator('#executorSignerCardSelect').inputValue(), 'П.П. Петров');
         assert.equal(await page.locator('#assocPosition').inputValue(), 'директор по сертификации');
         assert.equal(await page.locator('#assocBasis').inputValue(), 'доверенности № 15 от 1 сентября 2026 г.');
         await page.locator('#assocBasis').fill('доверенности № 16 от 2 сентября 2026 г.');
@@ -230,9 +284,12 @@ async function fill(page, data = validData) {
     await page.locator('#defaultCity').fill('Москва');
     await page.locator('#defaultServicePlace').fill('Москва, Россия');
     await page.locator('#defaultDateMode').selectOption('today');
-    await page.locator('#retentionDays').selectOption('7');
     await page.locator('#saveDefaultsBtn').click();
-    assert.equal((await page.evaluate(() => window.__ACTS_WORKSPACE_TEST_API__.getPreferences())).retentionDays, 7);
+    assert.deepEqual(await page.locator('#retentionDays option').allInnerTexts(), ['30 дней', 'Полгода', '1 год', 'Всегда']);
+    await page.locator('#retentionDays').selectOption('183');
+    assert.equal((await page.evaluate(() => window.__ACTS_WORKSPACE_TEST_API__.getPreferences())).retentionDays, 183);
+    await page.locator('#retentionDays').selectOption('always');
+    assert.equal((await page.evaluate(() => window.__ACTS_WORKSPACE_TEST_API__.getPreferences())).retentionDays, 'always');
 
     await page.locator('#newDraftBtn').click();
     await page.locator('#draftNameInput').fill('Второй акт');
@@ -260,8 +317,19 @@ async function fill(page, data = validData) {
     const backup = JSON.parse(fs.readFileSync(backupPath, 'utf8'));
     assert.equal(backup.format, 'acts-constructor-backup');
     assert.equal(backup.data.drafts.length, 2);
+    assert.equal('signerCards' in backup.data, false);
+    assert.equal(backup.data.customerCards[0].name, validData.customerName);
     assert.equal(backup.data.executorSignerCards.length, 1);
     assert.equal(backup.data.serviceTemplates.length, 1);
+    const legacyBackup = structuredClone(backup);
+    legacyBackup.data.customerCards = [{ customer: validData.customer }];
+    legacyBackup.data.signerCards = [{ name: validData.customerName, position: validData.customerPosition, basis: validData.customerBasis }];
+    const migratedLegacyCard = await page.evaluate(text => {
+      const state = window.__ACTS_WORKSPACE_TEST_API__.parseBackup(text).state;
+      return { card: state.customerCards[0], hasSignerCards: 'signerCards' in state };
+    }, JSON.stringify(legacyBackup));
+    assert.deepEqual({ customer: migratedLegacyCard.card.customer, position: migratedLegacyCard.card.position, name: migratedLegacyCard.card.name, basis: migratedLegacyCard.card.basis }, { customer: validData.customer, position: validData.customerPosition, name: validData.customerName, basis: validData.customerBasis });
+    assert.equal(migratedLegacyCard.hasSignerCards, false);
     await page.locator('#customer').fill('Поврежденные данные');
     page.once('dialog', dialog => dialog.accept());
     await page.locator('#backupFileInput').setInputFiles(backupPath);
@@ -271,21 +339,66 @@ async function fill(page, data = validData) {
     await page.evaluate(() => {
       localStorage.setItem('actsInstalledUnlimitedV1', '1');
       const state = JSON.parse(localStorage.getItem('actsWorkspaceDataV1')); state.updatedAt = '2000-01-01T00:00:00.000Z';
-      [...state.customerCards, ...state.signerCards, ...state.executorSignerCards].forEach(card => delete card.id);
+      [...state.customerCards, ...state.executorSignerCards].forEach(card => delete card.id);
       localStorage.setItem('actsWorkspaceDataV1', JSON.stringify(state));
       const form = JSON.parse(localStorage.getItem('actsGeneratorSettingsV10')); if (form) { form.savedAt = '2000-01-01T00:00:00.000Z'; localStorage.setItem('actsGeneratorSettingsV10', JSON.stringify(form)); }
     });
     await page.reload({ waitUntil: 'networkidle' });
     await page.locator('#workTools').evaluate(element => { element.open = true; });
     assert.equal(await page.evaluate(() => window.__ACTS_INSTALLED__), true);
-    assert.equal(await page.locator('#retentionLabel').innerText(), 'Срок хранения: без ограничения');
+    assert.equal(await page.locator('#retentionDays').inputValue(), 'always');
     const migratedState = await page.evaluate(() => window.__ACTS_WORKSPACE_TEST_API__.getState());
     assert.equal(migratedState.drafts.length, 2);
-    assert.ok([...migratedState.customerCards, ...migratedState.signerCards, ...migratedState.executorSignerCards].every(card => typeof card.id === 'string' && card.id.length > 0));
+    assert.equal('signerCards' in migratedState, false);
+    assert.ok([...migratedState.customerCards, ...migratedState.executorSignerCards].every(card => typeof card.id === 'string' && card.id.length > 0));
 
     await page.locator('#storageEnabled').uncheck();
     const storage = await page.evaluate(() => ({ allowed: window.__ACTS_STORAGE_ALLOWED__, data: localStorage.getItem('actsWorkspaceDataV1'), form: localStorage.getItem('actsGeneratorSettingsV10') }));
     assert.equal(storage.allowed, false); assert.equal(storage.data, null); assert.equal(storage.form, null);
+
+    const retentionContext = await browser.newContext();
+    const retentionPage = await retentionContext.newPage();
+    await retentionPage.goto(baseUrl, { waitUntil: 'networkidle' });
+    const retentionScenarios = [
+      { retentionDays: 30, ageDays: 29, survives: true },
+      { retentionDays: 30, ageDays: 31, survives: false },
+      { retentionDays: 183, ageDays: 180, survives: true },
+      { retentionDays: 183, ageDays: 184, survives: false },
+      { retentionDays: 365, ageDays: 360, survives: true },
+      { retentionDays: 365, ageDays: 366, survives: false },
+      { retentionDays: 'always', ageDays: 5000, survives: true }
+    ];
+    for (const scenario of retentionScenarios) {
+      await retentionPage.evaluate(({ retentionDays, ageDays }) => {
+        const updatedAt = new Date(Date.now() - ageDays * 86400000).toISOString();
+        const fields = {
+          executor: 'rr', assocPosition: '', assocName: '', assocBasis: '', actDate: '', city: '',
+          customer: 'ООО «Маркер хранения»', contractNumber: '', contractDate: '', customerPosition: 'директор',
+          customerName: 'И.И. Иванов', customerBasis: 'Устава', servicePlace: '', amount: '', serviceName: ''
+        };
+        localStorage.clear();
+        localStorage.setItem('actsWorkspacePreferencesV1', JSON.stringify({ storageEnabled: true, retentionDays, defaults: { city: '', servicePlace: '', dateMode: 'blank' } }));
+        localStorage.setItem('actsWorkspaceDataV1', JSON.stringify({
+          version: 3, updatedAt, activeDraftId: 'main',
+          drafts: [{ id: 'main', name: 'Проверка хранения', fields, updatedAt }],
+          customerCards: [{ id: 'marker', customer: fields.customer, position: fields.customerPosition, name: fields.customerName, basis: fields.customerBasis, updatedAt }],
+          executorSignerCards: [], serviceTemplates: [], lastAct: null
+        }));
+        localStorage.setItem('actsGeneratorSettingsV10', JSON.stringify({ version: '3.0', savedAt: updatedAt, fields }));
+      }, scenario);
+      await retentionPage.reload({ waitUntil: 'networkidle' });
+      const retained = await retentionPage.evaluate(() => ({
+        customer: document.getElementById('customer').value,
+        cards: window.__ACTS_WORKSPACE_TEST_API__.getState().customerCards.length,
+        retentionDays: window.__ACTS_WORKSPACE_TEST_API__.getPreferences().retentionDays,
+        legacyFormStored: localStorage.getItem('actsGeneratorSettingsV10') !== null
+      }));
+      assert.equal(String(retained.retentionDays), String(scenario.retentionDays));
+      assert.equal(retained.customer === 'ООО «Маркер хранения»', scenario.survives, `form retention must be enforced for ${scenario.retentionDays} days at age ${scenario.ageDays}`);
+      assert.equal(retained.cards === 1, scenario.survives, `library retention must be enforced for ${scenario.retentionDays} days at age ${scenario.ageDays}`);
+      assert.equal(retained.legacyFormStored, scenario.survives, `legacy form storage must be removed when ${scenario.retentionDays}-day retention expires`);
+    }
+    await retentionContext.close();
 
     const socialPreview = await page.evaluate(() => new Promise((resolve, reject) => {
       const image = new Image(); image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight }); image.onerror = reject; image.src = 'preview-v2.8.png';
@@ -296,26 +409,45 @@ async function fill(page, data = validData) {
       const done = () => resolve({ src: image.getAttribute('src'), width: image.naturalWidth, height: image.naturalHeight });
       if (image.complete && image.naturalWidth) done(); else { image.addEventListener('load', done, { once: true }); image.addEventListener('error', reject, { once: true }); }
     }));
-    assert.deepEqual(heroArtwork, { src: 'assets/hero-architecture-v2.9.png', width: 2400, height: 240 });
+    assert.deepEqual(heroArtwork, { src: 'assets/hero-city-color-v2.10.png', width: 2172, height: 724 });
     assert.match(fs.readFileSync(path.join(root, 'assets', 'styles-v2.9.css'), 'utf8'), /::-webkit-date-and-time-value\{[^}]*align-items:center/);
 
     await page.locator('#workTools').evaluate(element => { element.open = false; });
     await page.locator('#executor').selectOption('rr');
 
+    assert.equal(await page.locator('#actForm .privacy-note').count(), 0, 'storage notice must not remain inside the form');
+    assert.equal(await page.locator('.site-footer #privacyText').count(), 1, 'storage notice must be placed in the footer');
+    const footerRects = await page.locator('.site-footer > *:visible').evaluateAll(elements => elements.map(element => { const rect = element.getBoundingClientRect(); return { top: rect.top, bottom: rect.bottom }; }));
+    assert.ok(Math.max(...footerRects.map(rect => rect.top)) < Math.min(...footerRects.map(rect => rect.bottom)), 'desktop footer content must stay in one row');
+
     for (const viewport of [{ width: 1920, height: 1080 }, { width: 1366, height: 768 }, { width: 1024, height: 768 }, { width: 402, height: 874 }, { width: 390, height: 844 }, { width: 320, height: 568 }]) {
       await page.setViewportSize(viewport); await page.waitForTimeout(120);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
       assert.equal(overflow, false, `horizontal overflow at ${viewport.width}px`);
+      const containment = await page.evaluate(() => [...document.querySelectorAll('.form-section')].flatMap(section => {
+        const bounds = section.getBoundingClientRect();
+        return [...section.querySelectorAll('input:not([type="file"]), textarea, .executor-trigger, .library-actions')].filter(element => element.getClientRects().length > 0).map(element => {
+          const rect = element.getBoundingClientRect();
+          return { name: element.id || element.className, left: rect.left, right: rect.right, sectionLeft: bounds.left, sectionRight: bounds.right };
+        });
+      }));
+      containment.forEach(rect => {
+        assert.ok(rect.left >= rect.sectionLeft - 1, `${rect.name} must remain inside its section on the left at ${viewport.width}px`);
+        assert.ok(rect.right <= rect.sectionRight + 1, `${rect.name} must remain inside its section on the right at ${viewport.width}px`);
+      });
       if (viewport.width >= 1180) {
         if (viewport.width === 1920) await page.screenshot({ path: path.join(outputDir, 'desktop-full-hd.png'), fullPage: true });
-        const desktopMetrics = await page.evaluate(() => ({ appWidth: document.querySelector('.app-shell').getBoundingClientRect().width, heroHeight: document.querySelector('.hero').getBoundingClientRect().height, formHeight: document.querySelector('#actForm').scrollHeight, inputHeight: document.querySelector('#city').getBoundingClientRect().height, inputSize: parseFloat(getComputedStyle(document.querySelector('#city')).fontSize), labelSize: parseFloat(getComputedStyle(document.querySelector('label[for="city"]')).fontSize) }));
+        if (viewport.width === 1366) await page.screenshot({ path: path.join(outputDir, 'desktop-1366-viewport.png'), fullPage: false });
+        const desktopMetrics = await page.evaluate(() => ({ appWidth: document.querySelector('.app-shell').getBoundingClientRect().width, heroHeight: document.querySelector('.hero').getBoundingClientRect().height, formHeight: document.querySelector('#actForm').scrollHeight, formPanelHeight: document.querySelector('.form-panel').getBoundingClientRect().height, previewPanelHeight: document.querySelector('.preview-panel').getBoundingClientRect().height, inputHeight: document.querySelector('#city').getBoundingClientRect().height, inputSize: parseFloat(getComputedStyle(document.querySelector('#city')).fontSize), labelSize: parseFloat(getComputedStyle(document.querySelector('label[for="city"]')).fontSize) }));
         assert.ok(desktopMetrics.appWidth >= Math.min(1660, viewport.width - 20) - 2, `workspace must use available Full HD width at ${viewport.width}px`);
         assert.ok(desktopMetrics.heroHeight <= 90, `hero must stay compact at ${viewport.width}px, got ${desktopMetrics.heroHeight}px`);
         assert.ok(desktopMetrics.inputHeight <= 38, `inputs must stay compact at ${viewport.width}px`);
         assert.ok(desktopMetrics.labelSize >= 12, 'labels must remain readable');
         assert.ok(Math.abs(desktopMetrics.inputSize - desktopMetrics.labelSize) <= 1.5, 'field labels and values must share one readable scale');
+        assert.ok(Math.abs(desktopMetrics.formPanelHeight - desktopMetrics.previewPanelHeight) <= 1, `desktop panels must have equal heights at ${viewport.width}px`);
         if (viewport.width === 1920) assert.ok(desktopMetrics.formHeight <= 920, `Full HD form must be compact, got ${desktopMetrics.formHeight}px`);
       }
+      if (viewport.width === 1024) await page.screenshot({ path: path.join(outputDir, 'desktop-1024-viewport.png'), fullPage: false });
       if (viewport.width <= 402) {
         await page.locator('#executor').selectOption('rrPoa');
         const executorLabelFits = await page.locator('#executorPickerLabel').evaluate(element => element.scrollWidth <= element.clientWidth + 1);
@@ -342,11 +474,11 @@ async function fill(page, data = validData) {
       if (!navigator.serviceWorker.controller) await new Promise(resolve => navigator.serviceWorker.addEventListener('controllerchange', resolve, { once: true }));
     });
     const caches = await page.evaluate(() => window.caches.keys());
-    assert.ok(caches.includes('acts-constructor-v2.9-20260913'));
+    assert.ok(caches.includes('acts-constructor-v3.0.0-20260913'));
     await context.setOffline(true);
     const offlinePage = await context.newPage();
     await offlinePage.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-    assert.equal(await offlinePage.evaluate(() => window.__ACTS_TEST_API__?.APP_VERSION), '2.9');
+    assert.equal(await offlinePage.evaluate(() => window.__ACTS_TEST_API__?.APP_VERSION), '3.0');
     assert.ok(await offlinePage.evaluate(() => Array.isArray(window.XLSX_TEMPLATE_ENTRIES) && window.XLSX_TEMPLATE_ENTRIES.length > 0));
     await offlinePage.close();
     await context.setOffline(false);
