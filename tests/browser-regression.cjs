@@ -367,6 +367,12 @@ async function fill(page, data = validData) {
     const retentionContext = await browser.newContext();
     const retentionPage = await retentionContext.newPage();
     await retentionPage.goto(baseUrl, { waitUntil: 'networkidle' });
+    await retentionPage.evaluate(() => {
+      localStorage.clear();
+      localStorage.setItem('actsWorkspacePreferencesV1', JSON.stringify({ storageEnabled: true, retentionDays: 30, defaults: { city: '', servicePlace: '', dateMode: 'blank' } }));
+    });
+    await retentionPage.reload({ waitUntil: 'networkidle' });
+    assert.equal(await retentionPage.locator('#retentionDays').inputValue(), 'always', 'the new browser default must migrate an old default to forever once');
     const retentionScenarios = [
       { retentionDays: 30, ageDays: 29, survives: true },
       { retentionDays: 30, ageDays: 31, survives: false },
@@ -385,6 +391,7 @@ async function fill(page, data = validData) {
           customerName: 'И.И. Иванов', customerBasis: 'Устава', servicePlace: '', amount: '', serviceName: ''
         };
         localStorage.clear();
+        localStorage.setItem('actsRetentionDefaultAlwaysV3', '1');
         localStorage.setItem('actsWorkspacePreferencesV1', JSON.stringify({ storageEnabled: true, retentionDays, defaults: { city: '', servicePlace: '', dateMode: 'blank' } }));
         localStorage.setItem('actsWorkspaceDataV1', JSON.stringify({
           version: 3, updatedAt, activeDraftId: 'main',
@@ -482,7 +489,7 @@ async function fill(page, data = validData) {
       if (!navigator.serviceWorker.controller) await new Promise(resolve => navigator.serviceWorker.addEventListener('controllerchange', resolve, { once: true }));
     });
     const caches = await page.evaluate(() => window.caches.keys());
-    assert.ok(caches.includes('acts-constructor-v3.0.0-20260913-r2'));
+    assert.ok(caches.includes('acts-constructor-v3.0.0-20260913-r3'));
     await context.setOffline(true);
     const offlinePage = await context.newPage();
     await offlinePage.goto(baseUrl, { waitUntil: 'domcontentloaded' });

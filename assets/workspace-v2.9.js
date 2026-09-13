@@ -4,6 +4,7 @@
   const DATA_KEY = 'actsWorkspaceDataV1';
   const INSTALLED_KEY = 'actsInstalledUnlimitedV1';
   const INSTALLED_RETENTION_MIGRATION_KEY = 'actsInstalledRetentionDefaultV3';
+  const RETENTION_DEFAULT_MIGRATION_KEY = 'actsRetentionDefaultAlwaysV3';
   const LEGACY_KEYS = ['actsGeneratorSettingsV9', 'actsGeneratorSettingsV10'];
   const DAY = 86400000;
   const fieldIds = ['executor', 'assocPosition', 'assocName', 'assocBasis', 'actDate', 'city', 'customer', 'contractNumber', 'contractDate', 'customerPosition', 'customerName', 'customerBasis', 'servicePlace', 'amount', 'serviceName'];
@@ -26,7 +27,9 @@
   const standaloneNow = window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true;
   const installedKnown = (() => { try { return localStorage.getItem(INSTALLED_KEY) === '1'; } catch (_) { return false; } })();
   const installedRetentionMigrated = (() => { try { return localStorage.getItem(INSTALLED_RETENTION_MIGRATION_KEY) === '1'; } catch (_) { return false; } })();
-  if (!hasSavedRetention || ((standaloneNow || installedKnown) && !installedRetentionMigrated)) prefs.retentionDays = 'always';
+  const retentionDefaultMigrated = (() => { try { return localStorage.getItem(RETENTION_DEFAULT_MIGRATION_KEY) === '1'; } catch (_) { return false; } })();
+  if (!hasSavedRetention || !retentionDefaultMigrated || ((standaloneNow || installedKnown) && !installedRetentionMigrated)) prefs.retentionDays = 'always';
+  try { localStorage.setItem(RETENTION_DEFAULT_MIGRATION_KEY, '1'); } catch (_) {}
   if (standaloneNow) { try { localStorage.setItem(INSTALLED_KEY, '1'); localStorage.setItem(INSTALLED_RETENTION_MIGRATION_KEY, '1'); } catch (_) {} }
   window.__ACTS_INSTALLED__ = standaloneNow || installedKnown;
   window.__ACTS_STORAGE_ALLOWED__ = prefs.storageEnabled;
@@ -686,7 +689,7 @@
     fields.executor.addEventListener('change', updateContractPlaceholder);
     window.addEventListener('appinstalled', () => {
       prefs.retentionDays = 'always';
-      try { localStorage.setItem(INSTALLED_KEY, '1'); localStorage.setItem(INSTALLED_RETENTION_MIGRATION_KEY, '1'); } catch (_) {}
+      try { localStorage.setItem(INSTALLED_KEY, '1'); localStorage.setItem(INSTALLED_RETENTION_MIGRATION_KEY, '1'); localStorage.setItem(RETENTION_DEFAULT_MIGRATION_KEY, '1'); } catch (_) {}
       window.__ACTS_INSTALLED__ = true; persistPrefs(); renderPrivacy();
       toast('Приложение установлено. Срок хранения переключен на «Навсегда».');
     });
