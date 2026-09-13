@@ -1,20 +1,25 @@
 "use strict";
 
 const CACHE_PREFIX = "acts-constructor-";
-const CACHE_NAME = `${CACHE_PREFIX}v2.8-20260913`;
+const CACHE_NAME = `${CACHE_PREFIX}v2.9-20260913`;
 const OFFLINE_URL = "./index.html";
 const APP_SHELL = [
   "./index.html",
-  "./assets/styles-v2.8.css",
-  "./assets/workspace-v2.8.js",
-  "./assets/app-v2.8.js",
+  "./assets/styles-v2.9.css",
+  "./assets/workspace-v2.9.js",
+  "./assets/app-v2.9.js",
   "./assets/xlsx-template-v2.3.js",
-  "./assets/pwa-v2.8.css",
-  "./assets/pwa-v2.8.js",
+  "./assets/pwa-v2.9.css",
+  "./assets/pwa-v2.9.js",
   "./assets/rr-logo.png",
-  "./assets/spb-header.jpg",
-  "./assets/social-preview-background-v2.8.png",
-  "./assets/icons-v2.8.svg",
+  "./assets/hero-architecture-v2.9.png",
+  "./assets/icons-v2.9.svg",
+  "./assets/pictogram-document-check-v2.9.svg",
+  "./assets/pictogram-preview-v2.9.svg",
+  "./assets/pictogram-signature-v2.9.svg",
+  "./assets/pictogram-excel-v2.9.svg",
+  "./assets/pictogram-shield-v2.9.svg",
+  "./assets/pictogram-repeat-v2.9.svg",
   "./favicon.png",
   "./apple-touch-icon.png",
   "./manifest.webmanifest",

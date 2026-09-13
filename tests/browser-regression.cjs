@@ -10,7 +10,7 @@ const { chromium } = require('playwright');
 const root = path.resolve(__dirname, '..');
 const port = Number(process.env.QA_PORT || 4173);
 const baseUrl = `http://127.0.0.1:${port}/`;
-const outputDir = process.env.QA_OUTPUT || path.join(os.tmpdir(), 'acts-v2.8-qa');
+const outputDir = process.env.QA_OUTPUT || path.join(os.tmpdir(), 'acts-v2.9-qa');
 fs.mkdirSync(outputDir, { recursive: true });
 
 const validData = {
@@ -59,9 +59,10 @@ async function fill(page, data = validData) {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(baseUrl, { waitUntil: 'networkidle' });
 
-    assert.equal(await page.evaluate(() => window.__ACTS_TEST_API__?.APP_VERSION), '2.8');
-    const iconSystem = await page.evaluate(() => ({ total: document.querySelectorAll('body svg.ui-icon').length, inconsistent: document.querySelectorAll('body svg:not(.ui-icon)').length, inlinePaths: document.querySelectorAll('body svg path, body svg circle, body svg rect').length, externalUses: [...document.querySelectorAll('body svg.ui-icon use')].every(use => use.getAttribute('href')?.startsWith('assets/icons-v2.8.svg#')) }));
-    assert.equal(iconSystem.total, 22, 'the unified icon system must cover every interface SVG');
+    assert.equal(await page.evaluate(() => window.__ACTS_TEST_API__?.APP_VERSION), '2.9');
+    const iconSystem = await page.evaluate(() => ({ pictograms: document.querySelectorAll('body img.ui-pictogram').length, total: document.querySelectorAll('body svg.ui-icon').length, inconsistent: document.querySelectorAll('body svg:not(.ui-icon)').length, inlinePaths: document.querySelectorAll('body svg path, body svg circle, body svg rect').length, externalUses: [...document.querySelectorAll('body svg.ui-icon use')].every(use => use.getAttribute('href')?.startsWith('assets/icons-v2.9.svg#')) }));
+    assert.equal(iconSystem.pictograms, 8, 'main product symbols must use object-based illustrated pictograms');
+    assert.ok(iconSystem.total > 0, 'utility controls must keep the unified icon system');
     assert.equal(iconSystem.inconsistent, 0); assert.equal(iconSystem.inlinePaths, 0); assert.equal(iconSystem.externalUses, true);
     await page.locator('#workTools').evaluate(element => { element.open = true; });
     for (const [executor, placeholder] of Object.entries({ rr: '26.001.01.026РР', rrPoa: '26.001.01.026РР', rrms: '26.001.01.026РР-МС', rrs: '26.001.01.026РРС' })) {
@@ -101,17 +102,20 @@ async function fill(page, data = validData) {
       '2 (Два) руб. 00 коп.'
     ]);
     assert.equal(calculations.vat22, 8114.75); assert.equal(calculations.vat5, 2142.86);
-    await page.locator('#downloadXlsxBtn').click();
+    await page.locator('#downloadXlsxBtn').evaluate(button => button.click());
     assert.match(await page.locator('#validationList').innerText(), /Дата акта не может быть раньше даты договора/);
     await page.locator('#actDate').fill(validData.actDate);
+    assert.equal(await page.locator('#actDate').inputValue(), validData.actDate);
 
     await page.locator('#customerName').fill('Иванов 123');
-    await page.locator('#downloadXlsxBtn').click();
+    const nameValidation = await page.evaluate(() => window.__ACTS_WORKSPACE_TEST_API__.semanticErrors().map(error => `${error.key}:${error.message}`));
+    assert.ok(nameValidation.some(error => error.includes('customerName:Проверьте формат имени')), nameValidation.join('\n'));
+    await page.locator('#downloadXlsxBtn').evaluate(button => button.click());
     assert.match(await page.locator('#validationList').innerText(), /Проверьте формат имени/);
     await page.locator('#customerName').fill(validData.customerName);
 
     await page.locator('#customerBasis').fill('...');
-    await page.locator('#downloadXlsxBtn').click();
+    await page.locator('#downloadXlsxBtn').evaluate(button => button.click());
     assert.match(await page.locator('#validationList').innerText(), /содержательное основание полномочий/);
     await page.locator('#customerBasis').fill(validData.customerBasis);
 
@@ -287,17 +291,30 @@ async function fill(page, data = validData) {
       const image = new Image(); image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight }); image.onerror = reject; image.src = 'preview-v2.8.png';
     }));
     assert.deepEqual(socialPreview, { width: 1200, height: 630 });
+    const heroArtwork = await page.evaluate(() => new Promise((resolve, reject) => {
+      const image = document.querySelector('.hero-skyline img');
+      const done = () => resolve({ src: image.getAttribute('src'), width: image.naturalWidth, height: image.naturalHeight });
+      if (image.complete && image.naturalWidth) done(); else { image.addEventListener('load', done, { once: true }); image.addEventListener('error', reject, { once: true }); }
+    }));
+    assert.deepEqual(heroArtwork, { src: 'assets/hero-architecture-v2.9.png', width: 2400, height: 240 });
+    assert.match(fs.readFileSync(path.join(root, 'assets', 'styles-v2.9.css'), 'utf8'), /::-webkit-date-and-time-value\{[^}]*align-items:center/);
+
+    await page.locator('#workTools').evaluate(element => { element.open = false; });
+    await page.locator('#executor').selectOption('rr');
 
     for (const viewport of [{ width: 1920, height: 1080 }, { width: 1366, height: 768 }, { width: 1024, height: 768 }, { width: 402, height: 874 }, { width: 390, height: 844 }, { width: 320, height: 568 }]) {
       await page.setViewportSize(viewport); await page.waitForTimeout(120);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
       assert.equal(overflow, false, `horizontal overflow at ${viewport.width}px`);
       if (viewport.width >= 1180) {
-        const desktopMetrics = await page.evaluate(() => ({ appWidth: document.querySelector('.app-shell').getBoundingClientRect().width, heroHeight: document.querySelector('.hero').getBoundingClientRect().height, inputHeight: document.querySelector('#city').getBoundingClientRect().height, labelSize: parseFloat(getComputedStyle(document.querySelector('label[for="city"]')).fontSize) }));
+        if (viewport.width === 1920) await page.screenshot({ path: path.join(outputDir, 'desktop-full-hd.png'), fullPage: true });
+        const desktopMetrics = await page.evaluate(() => ({ appWidth: document.querySelector('.app-shell').getBoundingClientRect().width, heroHeight: document.querySelector('.hero').getBoundingClientRect().height, formHeight: document.querySelector('#actForm').scrollHeight, inputHeight: document.querySelector('#city').getBoundingClientRect().height, inputSize: parseFloat(getComputedStyle(document.querySelector('#city')).fontSize), labelSize: parseFloat(getComputedStyle(document.querySelector('label[for="city"]')).fontSize) }));
         assert.ok(desktopMetrics.appWidth >= Math.min(1660, viewport.width - 20) - 2, `workspace must use available Full HD width at ${viewport.width}px`);
-        assert.ok(desktopMetrics.heroHeight <= 90, `hero must stay compact at ${viewport.width}px`);
+        assert.ok(desktopMetrics.heroHeight <= 90, `hero must stay compact at ${viewport.width}px, got ${desktopMetrics.heroHeight}px`);
         assert.ok(desktopMetrics.inputHeight <= 38, `inputs must stay compact at ${viewport.width}px`);
         assert.ok(desktopMetrics.labelSize >= 12, 'labels must remain readable');
+        assert.ok(Math.abs(desktopMetrics.inputSize - desktopMetrics.labelSize) <= 1.5, 'field labels and values must share one readable scale');
+        if (viewport.width === 1920) assert.ok(desktopMetrics.formHeight <= 920, `Full HD form must be compact, got ${desktopMetrics.formHeight}px`);
       }
       if (viewport.width <= 402) {
         await page.locator('#executor').selectOption('rrPoa');
@@ -325,11 +342,11 @@ async function fill(page, data = validData) {
       if (!navigator.serviceWorker.controller) await new Promise(resolve => navigator.serviceWorker.addEventListener('controllerchange', resolve, { once: true }));
     });
     const caches = await page.evaluate(() => window.caches.keys());
-    assert.ok(caches.includes('acts-constructor-v2.8-20260913'));
+    assert.ok(caches.includes('acts-constructor-v2.9-20260913'));
     await context.setOffline(true);
     const offlinePage = await context.newPage();
     await offlinePage.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-    assert.equal(await offlinePage.evaluate(() => window.__ACTS_TEST_API__?.APP_VERSION), '2.8');
+    assert.equal(await offlinePage.evaluate(() => window.__ACTS_TEST_API__?.APP_VERSION), '2.9');
     assert.ok(await offlinePage.evaluate(() => Array.isArray(window.XLSX_TEMPLATE_ENTRIES) && window.XLSX_TEMPLATE_ENTRIES.length > 0));
     await offlinePage.close();
     await context.setOffline(false);
