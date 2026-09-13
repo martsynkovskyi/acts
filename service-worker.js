@@ -1,22 +1,22 @@
 "use strict";
 
 const CACHE_PREFIX = "acts-constructor-";
-const CACHE_NAME = `${CACHE_PREFIX}v2.6-20260912`;
+const CACHE_NAME = `${CACHE_PREFIX}v2.7-20260913`;
 const OFFLINE_URL = "./index.html";
 const APP_SHELL = [
   "./index.html",
-  "./assets/styles-v2.6.css",
-  "./assets/workspace-v2.6.js",
-  "./assets/app-v2.6.js",
+  "./assets/styles-v2.7.css",
+  "./assets/workspace-v2.7.js",
+  "./assets/app-v2.7.js",
   "./assets/xlsx-template-v2.3.js",
-  "./assets/pwa-v2.6.css",
-  "./assets/pwa-v2.6.js",
+  "./assets/pwa-v2.7.css",
+  "./assets/pwa-v2.7.js",
   "./assets/rr-logo.png",
   "./assets/spb-header.jpg",
-  "./favicon.svg",
+  "./favicon.png",
   "./apple-touch-icon.png",
   "./manifest.webmanifest",
-  "./preview-v2.6.png",
+  "./preview-v2.7.png",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/icon-maskable-192.png",
