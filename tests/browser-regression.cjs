@@ -158,6 +158,8 @@ async function fill(page, data = validData) {
     await page.locator('#executorPickerOptions .library-option[data-value="rrs"]').click();
     assert.equal(await page.locator('#executor').inputValue(), 'rrs');
     assert.equal(await page.locator('#executorPickerButton').innerText(), 'ООО «РРС»');
+    assert.equal(await page.locator('label[for="executor"]').count(), 0, 'executor label must not duplicate the section title');
+    assert.equal(await page.locator('#executorPickerButton').getAttribute('aria-label'), 'Исполнитель');
     assert.equal(await page.locator('#executorPickerOptions').innerText().then(text => text.includes('НДС')), false);
     await page.locator('#executor').selectOption('rr');
     assert.equal(await page.getByText('Ставка определяется выбранным исполнителем').count(), 0);
@@ -485,6 +487,8 @@ async function fill(page, data = validData) {
       const image = new Image(); image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight }); image.onerror = reject; image.src = 'preview-v3.0.png';
     }));
     assert.deepEqual(socialPreview, { width: 1200, height: 630 });
+    assert.equal(await page.locator('.hero-brand img').getAttribute('src'), 'icons/icon-192.png');
+    assert.notEqual(await page.locator('.hero-brand img').evaluate(image => getComputedStyle(image).borderRadius), '0px');
     const heroArtwork = await page.evaluate(() => new Promise((resolve, reject) => {
       const image = document.querySelector('.hero-skyline img');
       const done = () => resolve({ src: image.getAttribute('src'), width: image.naturalWidth, height: image.naturalHeight });
@@ -555,7 +559,7 @@ async function fill(page, data = validData) {
       if (!navigator.serviceWorker.controller) await new Promise(resolve => navigator.serviceWorker.addEventListener('controllerchange', resolve, { once: true }));
     });
     const caches = await page.evaluate(() => window.caches.keys());
-    assert.ok(caches.includes('acts-constructor-v3.0.0-20260913-r9'));
+    assert.ok(caches.includes('acts-constructor-v3.0.0-20260914-r12'));
     await context.setOffline(true);
     const offlinePage = await context.newPage();
     await offlinePage.goto(baseUrl, { waitUntil: 'domcontentloaded' });

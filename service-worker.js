@@ -1,7 +1,7 @@
 "use strict";
 
 const CACHE_PREFIX = "acts-constructor-";
-const CACHE_NAME = `${CACHE_PREFIX}v3.0.0-20260913-r9`;
+const CACHE_NAME = `${CACHE_PREFIX}v3.0.0-20260914-r12`;
 const OFFLINE_URL = "./index.html";
 const APP_SHELL = [
   "./index.html",
@@ -11,7 +11,6 @@ const APP_SHELL = [
   "./assets/xlsx-template-v2.3.js",
   "./assets/pwa-v2.9.css",
   "./assets/pwa-v2.9.js",
-  "./assets/rr-logo.png",
   "./assets/hero-city-color-v2.10.png",
   "./assets/icons-v2.9.svg",
   "./assets/icon-zoom-out-v3.svg",

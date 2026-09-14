@@ -66,7 +66,7 @@ body{padding:9px 10px;background:linear-gradient(180deg,#f7f9fc 0,#edf3f8 42%,#e
 .hero{min-height:84px;margin-bottom:9px;padding:8px 18px;gap:13px;border-color:#d6e2ef;border-radius:18px;background:#fff;box-shadow:0 8px 24px rgba(28,54,88,.07)}
 .hero:before{height:3px;background:linear-gradient(90deg,#175cd3,#2f80ed 54%,#74b8ef)}
 .hero-brand{width:60px;height:60px;border-radius:17px;box-shadow:0 7px 18px rgba(15,61,145,.11)}
-.hero-brand:after{inset:5px;border-radius:13px}.hero-brand img{width:52px;height:52px}
+.hero-brand:after{inset:5px;border-radius:13px}.hero-brand img{width:52px;height:52px;border-radius:22%}
 .hero-copy{max-width:min(690px,54vw)}.hero h1{font-size:clamp(32px,3.15vw,48px);line-height:1;letter-spacing:-.032em}.hero p{margin-top:4px;font-size:13px;line-height:1.28}
 .hero-skyline{inset:0;width:100%;-webkit-mask-image:none;mask-image:none;opacity:.96}.hero-skyline:before{background:linear-gradient(90deg,rgba(255,255,255,.98) 0%,rgba(255,255,255,.94) 36%,rgba(255,255,255,.25) 61%,rgba(255,255,255,.04) 100%)}.hero-skyline img{object-fit:fill;object-position:center;opacity:1;filter:none}
 .workspace{grid-template-columns:minmax(510px,.92fr) minmax(620px,1.08fr);gap:9px}
