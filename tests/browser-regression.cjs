@@ -60,6 +60,7 @@ async function fill(page, data = validData) {
     await page.goto(baseUrl, { waitUntil: 'networkidle' });
 
     assert.equal(await page.evaluate(() => window.__ACTS_TEST_API__?.APP_VERSION), '3.0');
+    assert.match(await page.locator('.footer-version').innerText(), /Версия 3\.0 \(14\.09\.2026\)/);
     assert.equal((await page.locator('#importXlsxBtn').textContent()).trim(), 'Загрузить данные из акта');
     assert.equal(await page.locator('#importXlsxBtn img[src="assets/pictogram-excel-v2.9.svg"]').count(), 1);
     assert.equal((await page.locator('#downloadXlsxBtn .button-label').textContent()).trim(), 'Скачать акт');
@@ -559,7 +560,7 @@ async function fill(page, data = validData) {
       if (!navigator.serviceWorker.controller) await new Promise(resolve => navigator.serviceWorker.addEventListener('controllerchange', resolve, { once: true }));
     });
     const caches = await page.evaluate(() => window.caches.keys());
-    assert.ok(caches.includes('acts-constructor-v3.0.0-20260914-r12'));
+    assert.ok(caches.includes('acts-constructor-v3.0.0-20260914-r13'));
     await context.setOffline(true);
     const offlinePage = await context.newPage();
     await offlinePage.goto(baseUrl, { waitUntil: 'domcontentloaded' });
