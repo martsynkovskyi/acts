@@ -65,7 +65,9 @@
     function nowIso() { return new Date().toISOString(); }
     function todayLocal() { const date = new Date(); return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 10); }
     function uid() { return `draft-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`; }
-    function normalize(value) { return String(value || '').replace(/\s+/g, ' ').trim(); }
+    function normalize(value) { return window.__ACTS_NORMALIZE_QUOTES__(String(value || '').replace(/\s+/g, ' ').trim()); }
+    prefs.defaults.city = normalize(prefs.defaults.city);
+    prefs.defaults.servicePlace = normalize(prefs.defaults.servicePlace);
     function currentDraft() { return state.drafts.find(draft => draft.id === state.activeDraftId) || state.drafts[0]; }
     function defaultFields() {
       const values = emptyFields();
@@ -75,7 +77,7 @@
       return values;
     }
     function restore(values) {
-      api.restore({ ...emptyFields(), ...(values || {}) });
+      api.restore(sanitizedFields(values));
       updateContractPlaceholder();
       syncExecutorPicker();
       refreshSemanticHints();
@@ -244,9 +246,11 @@
       const stored = prefs.storageEnabled ? readJson(DATA_KEY, null) : null;
       const fresh = stored && (prefs.retentionDays === 'always' || (Date.parse(stored.updatedAt || '') && Date.now() - Date.parse(stored.updatedAt) <= Number(prefs.retentionDays) * DAY));
       if (fresh && Array.isArray(stored.drafts) && stored.drafts.length) {
+        stored.drafts = stored.drafts.map(draft => ({ ...draft, name: draft.name === 'Основной черновик' ? 'Основной шаблон' : normalize(draft.name), fields: sanitizedFields(draft.fields) }));
         stored.customerCards = sanitizedCustomerCards(stored.customerCards, stored.drafts, stored.signerCards);
-        stored.executorSignerCards = Array.isArray(stored.executorSignerCards) ? stored.executorSignerCards.map(card => ({ ...card, id: card.id || uid() })) : [];
-        stored.serviceTemplates = Array.isArray(stored.serviceTemplates) ? stored.serviceTemplates : [];
+        stored.executorSignerCards = sanitizedSignerCards(stored.executorSignerCards);
+        stored.serviceTemplates = [...new Set((Array.isArray(stored.serviceTemplates) ? stored.serviceTemplates : []).map(normalize).filter(Boolean))];
+        if (stored.lastAct?.fields) stored.lastAct.fields = sanitizedFields(stored.lastAct.fields);
         stored.version = 3;
         delete stored.recentServices;
         delete stored.signerCards;
@@ -260,14 +264,14 @@
           if (legacy?.fields) { migrated = { ...emptyFields(), ...legacy.fields }; break; }
         }
       }
-      return { version: 3, updatedAt: nowIso(), activeDraftId: 'main', drafts: [{ id: 'main', name: 'Основной черновик', fields: migrated, updatedAt: nowIso() }], customerCards: [], executorSignerCards: [], serviceTemplates: [], lastAct: null };
+      return { version: 3, updatedAt: nowIso(), activeDraftId: 'main', drafts: [{ id: 'main', name: 'Основной шаблон', fields: sanitizedFields(migrated), updatedAt: nowIso() }], customerCards: [], executorSignerCards: [], serviceTemplates: [], lastAct: null };
     }
     function renderDrafts() {
       draftSelect.replaceChildren(...state.drafts.map(draft => new Option(draft.name, draft.id)));
       draftSelect.value = state.activeDraftId;
       renderSettingsPicker(draftPicker);
       const draft = currentDraft();
-      document.getElementById('activeDraftLabel').textContent = draft?.name || 'Основной черновик';
+      document.getElementById('activeDraftLabel').textContent = draft?.name || 'Основной шаблон';
       document.getElementById('deleteDraftBtn').disabled = state.drafts.length === 1;
     }
     function signerLabel(card) { return card.name; }
@@ -450,7 +454,7 @@
       nameMode = mode;
       const modal = document.getElementById('draftNameModal');
       const input = document.getElementById('draftNameInput');
-      document.getElementById('draftNameTitle').textContent = mode === 'new' ? 'Новый черновик' : 'Переименовать черновик';
+      document.getElementById('draftNameTitle').textContent = mode === 'new' ? 'Новый шаблон' : 'Переименовать шаблон';
       input.value = mode === 'rename' ? currentDraft().name : '';
       modal.hidden = false;
       document.querySelector('.app-shell').setAttribute('inert', '');
@@ -462,24 +466,24 @@
     }
     function commitName() {
       const name = normalize(document.getElementById('draftNameInput').value).slice(0, 60);
-      if (!name) { toast('Укажите название черновика.', 'warn'); return; }
+      if (!name) { toast('Укажите название шаблона.', 'warn'); return; }
       if (nameMode === 'new') {
         saveCurrent(true);
         const draft = { id: uid(), name, fields: defaultFields(), updatedAt: nowIso() };
         state.drafts.push(draft); state.activeDraftId = draft.id; restore(draft.fields);
       } else currentDraft().name = name;
       persistState(); renderDrafts(); closeNameModal();
-      toast(nameMode === 'new' ? 'Новый черновик создан.' : 'Черновик переименован.');
+      toast(nameMode === 'new' ? 'Новый шаблон создан.' : 'Шаблон переименован.');
     }
     function deleteDraft() {
       if (state.drafts.length === 1) return;
       const draft = currentDraft();
-      if (!confirm(`Удалить черновик «${draft.name}»?`)) return;
+      if (!confirm(`Удалить шаблон «${draft.name}»?`)) return;
       const index = state.drafts.indexOf(draft);
       state.drafts.splice(index, 1);
       const next = state.drafts[Math.max(0, index - 1)];
       state.activeDraftId = next.id; restore(next.fields); persistState(); renderDrafts();
-      toast('Черновик удален.', 'warn');
+      toast('Шаблон удален.', 'warn');
     }
     function switchDraft() {
       const targetId = draftSelect.value;
@@ -487,7 +491,7 @@
       const draft = state.drafts.find(item => item.id === targetId);
       if (!draft) return;
       state.activeDraftId = draft.id; restore(draft.fields); persistState(); renderDrafts();
-      toast(`Открыт черновик «${draft.name}».`);
+      toast(`Открыт шаблон «${draft.name}».`);
     }
     function repeatLast() {
       if (!state.lastAct?.fields) { toast('Сначала сформируйте хотя бы один акт.', 'warn'); return; }
@@ -519,7 +523,7 @@
         removeStoredData();
         document.getElementById('saveIndicator').dataset.state = 'idle';
         document.getElementById('saveStatusText').textContent = 'Сохранение отключено';
-        toast('Сохраненные черновики и карточки удалены с этого компьютера.', 'warn');
+        toast('Сохраненные шаблоны и карточки удалены с этого компьютера.', 'warn');
       } else {
         persistState();
         fields.executor.dispatchEvent(new Event('input', { bubbles: true }));
@@ -595,6 +599,12 @@
       return files;
     }
     function parseRuDate(value) {
+      const numeric = normalize(value).match(/(\d{2})\.(\d{2})\.(\d{4})/);
+      if (numeric) {
+        const [, day, month, year] = numeric;
+        const parsed = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+        return parsed.getUTCFullYear() === Number(year) && parsed.getUTCMonth() + 1 === Number(month) && parsed.getUTCDate() === Number(day) ? `${year}-${month}-${day}` : '';
+      }
       const months = { января: 1, февраля: 2, марта: 3, апреля: 4, мая: 5, июня: 6, июля: 7, августа: 8, сентября: 9, октября: 10, ноября: 11, декабря: 12 };
       const match = normalize(value).match(/(\d{1,2})\s+([а-я]+)\s+(\d{4})/i);
       if (!match || !months[match[2].toLocaleLowerCase('ru')]) return '';
@@ -614,7 +624,7 @@
       values.serviceName = normalize(cell('A23'));
       values.servicePlace = normalize(cell('C34'));
       values.customerName = normalize(cell('E54')).replace(/^\/+|\/+$/g, '');
-      const contract = normalize(cell('A2')).match(/по договору №(.+?) от (\d{1,2}\s+[а-я]+\s+\d{4}) г\./i);
+      const contract = normalize(cell('A2')).match(/по договору №(.+?) от (\d{2}\.\d{2}\.\d{4}|\d{1,2}\s+[а-я]+\s+\d{4}) г\./i);
       if (contract) { values.contractNumber = contract[1].trim(); values.contractDate = parseRuDate(contract[2]); }
       const amount = normalize(cell('A43')).match(/^([\d\s]+)\s*\(/);
       if (amount) values.amount = amount[1].trim();
@@ -628,7 +638,7 @@
         values.customerPosition = index >= 0 ? customerPart[1].slice(0, index).trim() : '';
       }
       if (values.executor === 'rrPoa') {
-        const signer = intro.match(/представитель Исполнителя, (.+?) Ассоциации по сертификации "Русский Регистр" (.+?), действующ(?:ий|ая) на основании (.+?), с одной стороны/i);
+        const signer = intro.match(/представитель Исполнителя, (.+?) Ассоциации по сертификации «Русский Регистр» (.+?), действующ(?:ий|ая) на основании (.+?), с одной стороны/i);
         if (signer) { values.assocPosition = signer[1].trim(); values.assocName = signer[2].trim(); values.assocBasis = signer[3].trim(); }
       }
       return values;
@@ -667,23 +677,32 @@
       const url = URL.createObjectURL(blob), link = document.createElement('a');
       link.href = url; link.download = `Конструктор_актов_резервная_копия_${todayLocal()}.json`; link.rel = 'noopener';
       document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000);
-      toast('Резервная копия черновиков и справочников скачана.');
+      toast('Резервная копия шаблонов и справочников скачана.');
     }
     function sanitizedFields(source) {
       const result = emptyFields();
       if (!source || typeof source !== 'object') return result;
-      fieldIds.forEach(id => { if (id in source) result[id] = String(source[id] ?? '').slice(0, 5000); });
+      fieldIds.forEach(id => { if (id in source) result[id] = window.__ACTS_NORMALIZE_QUOTES__(String(source[id] ?? '').slice(0, 5000)); });
       if (!['rr', 'rrPoa', 'rrms', 'rrs'].includes(result.executor)) result.executor = 'rr';
       return result;
     }
+    function uniqueCards(cards, keys) {
+      const seen = new Set();
+      return cards.filter(card => {
+        const key = JSON.stringify(keys.map(field => card[field].toLocaleLowerCase('ru')));
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
     function sanitizedSignerCards(source) {
       if (!Array.isArray(source)) return [];
-      return source.slice(0, 500).map(item => ({ id: uid(), name: normalize(item?.name).slice(0, 120), position: normalize(item?.position).slice(0, 180), basis: normalize(item?.basis).slice(0, 220), updatedAt: nowIso() })).filter(item => item.name && item.position && item.basis);
+      return uniqueCards(source.slice(0, 500).map(item => ({ id: item?.id || uid(), name: normalize(item?.name).slice(0, 120), position: normalize(item?.position).slice(0, 180), basis: normalize(item?.basis).slice(0, 220), updatedAt: item?.updatedAt || nowIso() })).filter(item => item.name && item.position && item.basis), ['name', 'position', 'basis']);
     }
     function sanitizedCustomerCards(source, drafts = [], legacySigners = []) {
       if (!Array.isArray(source)) return [];
       const normalizedSigners = sanitizedSignerCards(legacySigners);
-      return source.slice(0, 500).map(item => {
+      return uniqueCards(source.slice(0, 500).map(item => {
         const customer = normalize(item?.customer).slice(0, 180);
         const matchingDraft = [...drafts].reverse().find(draft => normalize(draft?.fields?.customer).toLocaleLowerCase('ru') === customer.toLocaleLowerCase('ru') && normalize(draft?.fields?.customerName));
         const legacySigner = matchingDraft ? null : source.length === 1 && normalizedSigners.length === 1 ? normalizedSigners[0] : null;
@@ -694,15 +713,15 @@
           basis: normalize(item?.basis || matchingDraft?.fields?.customerBasis || legacySigner?.basis).slice(0, 220),
           updatedAt: item?.updatedAt || nowIso()
         };
-      }).filter(item => item.customer);
+      }).filter(item => item.customer), ['customer', 'position', 'name', 'basis']);
     }
     function parseBackup(text) {
       let parsed;
       try { parsed = JSON.parse(text); } catch (_) { throw new Error('Файл резервной копии содержит некорректный JSON.'); }
       if (parsed?.format !== 'acts-constructor-backup' || parsed?.formatVersion !== 1 || !parsed.data) throw new Error('Файл не распознан как резервная копия Конструктора актов.');
       const sourceDrafts = Array.isArray(parsed.data.drafts) ? parsed.data.drafts.slice(0, 100) : [];
-      if (!sourceDrafts.length) throw new Error('В резервной копии отсутствуют черновики.');
-      const drafts = sourceDrafts.map((draft, index) => ({ id: `restored-${index}-${Date.now().toString(36)}`, name: normalize(draft?.name).slice(0, 60) || `Черновик ${index + 1}`, fields: sanitizedFields(draft?.fields), updatedAt: nowIso() }));
+      if (!sourceDrafts.length) throw new Error('В резервной копии отсутствуют шаблоны.');
+      const drafts = sourceDrafts.map((draft, index) => ({ id: `restored-${index}-${Date.now().toString(36)}`, name: draft?.name === 'Основной черновик' ? 'Основной шаблон' : normalize(draft?.name).slice(0, 60) || `Шаблон ${index + 1}`, fields: sanitizedFields(draft?.fields), updatedAt: nowIso() }));
       const activeIndex = sourceDrafts.findIndex(draft => draft?.id === parsed.data.activeDraftId);
       const defaults = parsed.preferences?.defaults || {};
       const retentionRaw = parsed.preferences?.retentionDays;
@@ -713,7 +732,7 @@
           version: 3, updatedAt: nowIso(), activeDraftId: drafts[Math.max(0, activeIndex)]?.id || drafts[0].id, drafts,
           customerCards: sanitizedCustomerCards(parsed.data.customerCards, drafts, parsed.data.signerCards),
           executorSignerCards: sanitizedSignerCards(parsed.data.executorSignerCards),
-          serviceTemplates: (Array.isArray(parsed.data.serviceTemplates) ? parsed.data.serviceTemplates : []).slice(0, 500).map(item => normalize(item).slice(0, 1200)).filter(Boolean),
+          serviceTemplates: [...new Set((Array.isArray(parsed.data.serviceTemplates) ? parsed.data.serviceTemplates : []).slice(0, 500).map(item => normalize(item).slice(0, 1200)).filter(Boolean))],
           lastAct: parsed.data.lastAct?.fields ? { fields: sanitizedFields(parsed.data.lastAct.fields), exportedAt: nowIso() } : null
         }
       };
@@ -723,10 +742,10 @@
       if (file.size > 10 * 1024 * 1024) { toast('Файл резервной копии слишком большой.', 'error'); return; }
       try {
         const restored = parseBackup(await file.text());
-        if (!confirm('Восстановление заменит текущие черновики и сохраненные справочники. Продолжить?')) return;
+        if (!confirm('Восстановление заменит текущие шаблоны и сохраненные справочники. Продолжить?')) return;
         prefs.defaults = restored.prefs.defaults; prefs.retentionDays = restored.prefs.retentionDays; state = restored.state;
         persistPrefs(); persistState(); renderDrafts(); renderLibraries(); renderPrivacy(); restore(currentDraft().fields); updateContractPlaceholder();
-        toast(prefs.storageEnabled ? 'Черновики, подписанты, услуги и настройки восстановлены.' : 'Данные восстановлены в этой вкладке. Включите сохранение, чтобы оставить их на компьютере.');
+        toast(prefs.storageEnabled ? 'Шаблоны, подписанты, услуги и настройки восстановлены.' : 'Данные восстановлены в этой вкладке. Включите сохранение, чтобы оставить их на компьютере.');
       } catch (error) {
         console.error(error); toast(error.message || 'Не удалось восстановить резервную копию.', 'error');
       } finally { document.getElementById('backupFileInput').value = ''; }

@@ -4,13 +4,13 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { spawn } = require('node:child_process');
+const { spawn, execFileSync } = require('node:child_process');
 const { chromium } = require('playwright');
 
 const root = path.resolve(__dirname, '..');
 const port = Number(process.env.QA_PORT || 4173);
 const baseUrl = `http://127.0.0.1:${port}/`;
-const outputDir = process.env.QA_OUTPUT || path.join(os.tmpdir(), 'acts-v3.0-qa');
+const outputDir = process.env.QA_OUTPUT || path.join(os.tmpdir(), 'acts-v3.1-qa');
 fs.mkdirSync(outputDir, { recursive: true });
 
 const validData = {
@@ -59,8 +59,8 @@ async function fill(page, data = validData) {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(baseUrl, { waitUntil: 'networkidle' });
 
-    assert.equal(await page.evaluate(() => window.__ACTS_TEST_API__?.APP_VERSION), '3.0');
-    assert.match(await page.locator('.footer-version').innerText(), /Версия 3\.0 \(17\.09\.2026\)/);
+    assert.equal(await page.evaluate(() => window.__ACTS_TEST_API__?.APP_VERSION), '3.1');
+    assert.match(await page.locator('.footer-version').innerText(), /Версия 3\.1 \(17\.09\.2026\)/);
     assert.equal((await page.locator('#importXlsxBtn').textContent()).trim(), 'Загрузить данные из акта');
     assert.equal(await page.locator('#importXlsxBtn img[src="assets/pictogram-excel-v2.9.svg"]').count(), 1);
     assert.equal((await page.locator('#downloadXlsxBtn .button-label').textContent()).trim(), 'Скачать акт');
@@ -87,7 +87,7 @@ async function fill(page, data = validData) {
     assert.deepEqual(listTypography.draftPickerOptions, listTypography.executorPickerOptions, 'draft list typography must match executor list');
     assert.deepEqual(listTypography.retentionPickerOptions, listTypography.executorPickerOptions, 'retention list typography must match executor list');
     const iconSystem = await page.evaluate(() => ({ pictograms: document.querySelectorAll('body img.ui-pictogram').length, previewTools: document.querySelectorAll('body img.preview-tool-icon').length, utilities: document.querySelectorAll('body img.ui-icon').length, legacySvgIcons: document.querySelectorAll('body svg.ui-icon').length, inconsistent: document.querySelectorAll('body svg:not(.ui-icon)').length, inlinePaths: document.querySelectorAll('body svg path, body svg circle, body svg rect').length, externalUses: document.querySelectorAll('body svg use').length }));
-    assert.equal(iconSystem.pictograms, 8, 'main product symbols must use object-based illustrated pictograms');
+    assert.equal(iconSystem.pictograms, 9, 'main product symbols must use object-based illustrated pictograms');
     assert.equal(iconSystem.previewTools, 6, 'preview controls must use reliable standalone image files');
     assert.ok(iconSystem.utilities >= 10, 'utility controls must keep the unified standalone image system');
     assert.equal(iconSystem.legacySvgIcons, 0); assert.equal(iconSystem.inconsistent, 0); assert.equal(iconSystem.inlinePaths, 0); assert.equal(iconSystem.externalUses, 0);
@@ -98,8 +98,40 @@ async function fill(page, data = validData) {
     assert.equal(await page.locator('#zoomInBtn img').evaluate(image => image.complete && image.naturalWidth > 0), true);
     assert.equal(await page.locator('#openPreviewBtn img').evaluate(image => image.complete && image.naturalWidth > 0), true);
     await page.locator('#workTools').evaluate(element => { element.open = true; });
+    assert.equal((await page.locator('#downloadBlankTemplateBtn').innerText()).trim(), 'Скачать пустой шаблон');
+    const settingsActionLayout = async () => page.evaluate(() => {
+      const measure = selector => [...document.querySelectorAll(selector)].map(button => {
+        const rect = button.getBoundingClientRect();
+        return { left: rect.left, right: rect.right, top: rect.top, width: rect.width };
+      });
+      return { quick: measure('.quick-actions .mini-button'), backup: measure('.backup-actions .mini-button'), available: document.querySelector('.quick-actions').getBoundingClientRect().width };
+    });
+    const desktopActions = await settingsActionLayout();
+    assert.equal(desktopActions.quick.length, 3);
+    assert.equal(desktopActions.backup.length, 3);
+    assert.ok(desktopActions.quick.every(button => Math.abs(button.top - desktopActions.quick[0].top) <= 1), 'quick actions must share one desktop row');
+    assert.ok(desktopActions.quick.every((button, index) => Math.abs(button.width - desktopActions.backup[index].width) <= 1), 'both settings rows must use matching button widths');
+    assert.ok(Math.abs(desktopActions.quick[2].right - desktopActions.backup[2].right) <= 1, 'quick actions must fill the available width');
+    await page.setViewportSize({ width: 390, height: 844 });
+    const mobileActions = await settingsActionLayout();
+    assert.ok(mobileActions.quick.every(button => Math.abs(button.width - mobileActions.available) <= 1), 'mobile quick actions must use full width');
+    assert.ok(mobileActions.quick[0].top < mobileActions.quick[1].top && mobileActions.quick[1].top < mobileActions.quick[2].top, 'mobile quick actions must stack without overlap');
+    await page.setViewportSize({ width: 1440, height: 900 });
+    const blankPromise = page.waitForEvent('download');
+    await page.locator('#downloadBlankTemplateBtn').click();
+    const blankDownload = await blankPromise;
+    assert.equal(blankDownload.suggestedFilename(), 'Пустой_шаблон_акта.xlsx');
+    const blankPath = path.join(outputDir, blankDownload.suggestedFilename());
+    await blankDownload.saveAs(blankPath);
+    assert.ok(fs.statSync(blankPath).size > 10000);
+    const blankSheet = execFileSync('unzip', ['-p', blankPath, 'xl/worksheets/sheet1.xml'], { encoding: 'utf8' });
+    assert.match(blankSheet, /АКТ сдачи-приемки оказанных услуг/);
+    assert.match(blankSheet, /по договору №________ от __\.__\.____ г\. между/);
+    assert.doesNotMatch(blankSheet, /Ассоциацией по сертификации|ООО «Тестовый заказчик»|45 000,00/);
+    assert.equal(await page.locator('#customer').inputValue(), '', 'blank template download must not change the form');
+    await page.locator('#toastClose').click();
     const originalSaveStatus = await page.locator('#saveStatusText').textContent();
-    await page.locator('#saveStatusText').evaluate(element => { element.textContent = 'Черновик сохранен в 18:27'; });
+    await page.locator('#saveStatusText').evaluate(element => { element.textContent = 'Шаблон сохранен в 18:27'; });
     const saveIndicatorLines = await page.locator('#saveStatusText').evaluate(element => { const range = document.createRange(); range.selectNodeContents(element); return { lineRects: range.getClientRects().length, whiteSpace: getComputedStyle(element).whiteSpace }; });
     assert.equal(saveIndicatorLines.whiteSpace, 'nowrap');
     assert.equal(saveIndicatorLines.lineRects, 1, 'save status must remain on one line');
@@ -118,7 +150,7 @@ async function fill(page, data = validData) {
     assert.equal(await page.locator('#retentionDays').getAttribute('aria-hidden'), 'true');
     await page.locator('#draftPickerButton').click();
     assert.equal(await page.locator('#draftPickerOptions').isVisible(), true);
-    assert.deepEqual(await page.locator('#draftPickerOptions .library-option').allInnerTexts(), ['Основной черновик']);
+    assert.deepEqual(await page.locator('#draftPickerOptions .library-option').allInnerTexts(), ['Основной шаблон']);
     assert.equal(await page.locator('#draftPickerOptions .library-option[aria-selected="true"]').getAttribute('data-value'), 'main');
     await page.screenshot({ path: path.join(outputDir, 'settings-draft-picker.png'), fullPage: false });
     await page.locator('#draftPickerButton').click();
@@ -212,6 +244,16 @@ async function fill(page, data = validData) {
     assert.match(describedBy || '', /serviceNameFeedback/); assert.match(describedBy || '', /serviceNameCount/);
 
     await fill(page, { ...validData, actDate: '2026-08-31' });
+    await page.locator('#customer').fill('ООО "Ромашка"');
+    assert.equal(await page.locator('#customer').inputValue(), 'ООО «Ромашка»');
+    await page.locator('#serviceName').fill('Услуги "А" и "Б"');
+    assert.equal(await page.locator('#serviceName').inputValue(), 'Услуги «А» и «Б»');
+    assert.equal(await page.evaluate(() => window.__ACTS_TEST_API__.docTexts().service), 'Услуги «А» и «Б»');
+    await page.locator('#customer').fill(validData.customer);
+    await page.locator('#serviceName').fill(validData.serviceName);
+    assert.equal(await page.evaluate(() => window.__ACTS_TEST_API__.docTexts().contractDate), '01.09.2026');
+    assert.match(await page.evaluate(() => window.__ACTS_TEST_API__.docTexts().intro), /от 01\.09\.2026 г\./);
+    assert.deepEqual(await page.evaluate(() => ['01.09.2026', '1 сентября 2026', '31.02.2026'].map(window.__ACTS_WORKSPACE_TEST_API__.parseRuDate)), ['2026-09-01', '2026-09-01', '']);
     const calculations = await page.evaluate(() => {
       const api = window.__ACTS_TEST_API__;
       return {
@@ -249,6 +291,18 @@ async function fill(page, data = validData) {
     const xlsxPath = path.join(outputDir, download.suggestedFilename());
     await download.saveAs(xlsxPath);
     assert.ok(fs.statSync(xlsxPath).size > 10000);
+    const filledSheet = execFileSync('unzip', ['-p', xlsxPath, 'xl/worksheets/sheet1.xml'], { encoding: 'utf8' });
+    assert.match(filledSheet, /<c r="A11" s="24" t="inlineStr">/, 'the exported intro must retain its original Excel style');
+    assert.match(filledSheet, /по договору №26\.001\.01\.026РР от 01\.09\.2026 г\. между/);
+    assert.match(filledSheet, /в соответствии с договором №26\.001\.01\.026РР от 01\.09\.2026 г\./);
+    assert.doesNotMatch(filledSheet, /1 сентября 2026 г\./);
+    const filledBlankPromise = page.waitForEvent('download');
+    await page.locator('#downloadBlankTemplateBtn').click();
+    const filledBlankDownload = await filledBlankPromise;
+    await filledBlankDownload.saveAs(blankPath);
+    const filledBlankSheet = execFileSync('unzip', ['-p', blankPath, 'xl/worksheets/sheet1.xml'], { encoding: 'utf8' });
+    assert.doesNotMatch(filledBlankSheet, /ООО «Тестовый заказчик»|26\.001\.01\.026РР|45 000,00/);
+    assert.equal(await page.locator('#customer').inputValue(), validData.customer, 'blank template download must preserve entered data');
 
     await page.locator('#repeatActBtn').click();
     assert.equal(await page.locator('#contractNumber').inputValue(), '');
@@ -265,6 +319,16 @@ async function fill(page, data = validData) {
 
     await page.locator('#saveCustomerBtn').click();
     await page.locator('#saveServiceBtn').click();
+    await page.locator('#customer').fill('ООО "Тестовый заказчик"');
+    await page.locator('#saveCustomerBtn').click();
+    await page.locator('#serviceName').fill('Услуги по "оценке"');
+    await page.locator('#saveServiceBtn').click();
+    await page.locator('#serviceName').fill('Услуги по «оценке»');
+    await page.locator('#saveServiceBtn').click();
+    assert.equal((await page.evaluate(() => window.__ACTS_WORKSPACE_TEST_API__.getState())).serviceTemplates.filter(value => value === 'Услуги по «оценке»').length, 1);
+    page.once('dialog', dialog => dialog.accept());
+    await page.locator('#deleteServiceBtn').click();
+    await page.locator('#serviceName').fill(validData.serviceName);
     assert.equal(await page.locator('#customerCardOptions .library-option').count(), 1);
     assert.equal(await page.locator('#serviceTemplateOptions .library-option').count(), 1);
     const libraryTypography = await page.locator('#customerCardOptions .library-option-primary').evaluate(element => ({ fontSize: parseFloat(getComputedStyle(element).fontSize), fontWeight: Number(getComputedStyle(element).fontWeight), fieldFontSize: parseFloat(getComputedStyle(document.getElementById('customerCardSelect')).fontSize) }));
@@ -375,7 +439,7 @@ async function fill(page, data = validData) {
     assert.equal(await page.locator('#contractNumber').getAttribute('placeholder'), '26.001.01.026РРС');
     await page.locator('#customer').fill('ООО «Второй заказчик»');
     await page.locator('#draftPickerButton').click();
-    await page.locator('#draftPickerOptions .library-option').filter({ hasText: 'Основной черновик' }).click();
+    await page.locator('#draftPickerOptions .library-option').filter({ hasText: 'Основной шаблон' }).click();
     assert.equal(await page.locator('#customer').inputValue(), validData.customer);
     assert.equal(await page.locator('#contractNumber').getAttribute('placeholder'), '26.001.01.026РР');
     await page.locator('#draftPickerButton').click();
@@ -395,6 +459,18 @@ async function fill(page, data = validData) {
     assert.equal(backup.data.customerCards[0].name, validData.customerName);
     assert.equal(backup.data.executorSignerCards.length, 1);
     assert.equal(backup.data.serviceTemplates.length, 1);
+    const oldQuoteBackup = structuredClone(backup);
+    oldQuoteBackup.data.drafts[0].name = 'Основной черновик';
+    oldQuoteBackup.data.customerCards[0].customer = 'ООО "Тестовый заказчик"';
+    oldQuoteBackup.data.customerCards.push({ ...oldQuoteBackup.data.customerCards[0], id: 'quoted-duplicate', customer: validData.customer });
+    oldQuoteBackup.data.drafts[0].fields.customer = 'ООО "Тестовый заказчик"';
+    oldQuoteBackup.data.serviceTemplates.push('Услуги "А"', 'Услуги «А»');
+    const normalizedBackup = await page.evaluate(text => window.__ACTS_WORKSPACE_TEST_API__.parseBackup(text).state, JSON.stringify(oldQuoteBackup));
+    assert.equal(normalizedBackup.drafts[0].name, 'Основной шаблон');
+    assert.equal(normalizedBackup.drafts[0].fields.customer, validData.customer);
+    assert.equal(normalizedBackup.customerCards[0].customer, validData.customer);
+    assert.equal(normalizedBackup.customerCards.length, 1);
+    assert.equal(normalizedBackup.serviceTemplates.filter(value => value === 'Услуги «А»').length, 1);
     const legacyBackup = structuredClone(backup);
     legacyBackup.data.customerCards = [{ customer: validData.customer }];
     legacyBackup.data.signerCards = [{ name: validData.customerName, position: validData.customerPosition, basis: validData.customerBasis }];
@@ -545,11 +621,15 @@ async function fill(page, data = validData) {
           });
           const panelStyle = getComputedStyle(document.querySelector('.panel'));
           const skylineStyle = getComputedStyle(document.querySelector('.hero-skyline'));
-          return { dates: dates.map(({ id, field, section }) => ({ id, left: field.left, right: field.right, sectionLeft: section.left, sectionRight: section.right })), backdrop: panelStyle.backdropFilter || panelStyle.webkitBackdropFilter, mask: skylineStyle.maskImage || skylineStyle.webkitMaskImage };
+          const copy = document.querySelector('.hero-copy').getBoundingClientRect();
+          const skyline = document.querySelector('.hero-skyline').getBoundingClientRect();
+          return { dates: dates.map(({ id, field, section }) => ({ id, left: field.left, right: field.right, sectionLeft: section.left, sectionRight: section.right })), backdrop: panelStyle.backdropFilter || panelStyle.webkitBackdropFilter, mask: skylineStyle.maskImage || skylineStyle.webkitMaskImage, heroCopyBottom: copy.bottom, skylineTop: skyline.top, skylineFit: getComputedStyle(document.querySelector('.hero-skyline img')).objectFit };
         });
         mobileMetrics.dates.forEach(rect => { assert.ok(rect.left >= rect.sectionLeft - 1, `${rect.id} must not overflow left`); assert.ok(rect.right <= rect.sectionRight + 1, `${rect.id} must not overflow right`); });
         assert.equal(mobileMetrics.backdrop, 'none');
         assert.equal(mobileMetrics.mask, 'none');
+        assert.ok(mobileMetrics.skylineTop >= mobileMetrics.heroCopyBottom - 1, 'mobile panorama must be below the title and subtitle');
+        assert.equal(mobileMetrics.skylineFit, 'cover', 'mobile panorama must be cropped without distortion');
         await page.screenshot({ path: path.join(outputDir, `mobile-${viewport.width}.png`), fullPage: true });
       }
     }
@@ -560,14 +640,27 @@ async function fill(page, data = validData) {
       if (!navigator.serviceWorker.controller) await new Promise(resolve => navigator.serviceWorker.addEventListener('controllerchange', resolve, { once: true }));
     });
     const caches = await page.evaluate(() => window.caches.keys());
-    assert.ok(caches.includes('acts-constructor-v3.0.0-20260917-r14'));
+    assert.ok(caches.includes('acts-constructor-v3.1.0-20260917-r1'));
     await context.setOffline(true);
     const offlinePage = await context.newPage();
     await offlinePage.goto(baseUrl, { waitUntil: 'domcontentloaded' });
-    assert.equal(await offlinePage.evaluate(() => window.__ACTS_TEST_API__?.APP_VERSION), '3.0');
+    assert.equal(await offlinePage.evaluate(() => window.__ACTS_TEST_API__?.APP_VERSION), '3.1');
     assert.ok(await offlinePage.evaluate(() => Array.isArray(window.XLSX_TEMPLATE_ENTRIES) && window.XLSX_TEMPLATE_ENTRIES.length > 0));
     await offlinePage.close();
     await context.setOffline(false);
+    const clearContext = await browser.newContext();
+    const clearPage = await clearContext.newPage();
+    await clearPage.goto(baseUrl, { waitUntil: 'networkidle' });
+    await clearPage.locator('#customer').fill('ООО «Проверка отмены»');
+    await clearPage.locator('#resetBtn').click();
+    assert.match(await clearPage.locator('#clearConfirmModal').innerText(), /в течение 10 секунд/);
+    await clearPage.locator('#confirmClearBtn').click();
+    assert.equal(await clearPage.locator('#customer').inputValue(), '');
+    await clearPage.waitForTimeout(9000);
+    assert.equal(await clearPage.locator('#toastAction').isVisible(), true, 'undo must remain available after nine seconds');
+    await clearPage.locator('#toastAction').click();
+    assert.equal(await clearPage.locator('#customer').inputValue(), 'ООО «Проверка отмены»');
+    await clearContext.close();
     assert.deepEqual(pageErrors, []);
     process.stdout.write(JSON.stringify({ ok: true, outputDir, xlsxPath }, null, 2) + '\n');
   } finally {
