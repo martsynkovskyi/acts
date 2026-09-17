@@ -60,7 +60,7 @@ async function fill(page, data = validData) {
     await page.goto(baseUrl, { waitUntil: 'networkidle' });
 
     assert.equal(await page.evaluate(() => window.__ACTS_TEST_API__?.APP_VERSION), '3.0');
-    assert.match(await page.locator('.footer-version').innerText(), /Версия 3\.0 \(14\.09\.2026\)/);
+    assert.match(await page.locator('.footer-version').innerText(), /Версия 3\.0 \(17\.09\.2026\)/);
     assert.equal((await page.locator('#importXlsxBtn').textContent()).trim(), 'Загрузить данные из акта');
     assert.equal(await page.locator('#importXlsxBtn img[src="assets/pictogram-excel-v2.9.svg"]').count(), 1);
     assert.equal((await page.locator('#downloadXlsxBtn .button-label').textContent()).trim(), 'Скачать акт');
@@ -86,7 +86,7 @@ async function fill(page, data = validData) {
     });
     assert.deepEqual(listTypography.draftPickerOptions, listTypography.executorPickerOptions, 'draft list typography must match executor list');
     assert.deepEqual(listTypography.retentionPickerOptions, listTypography.executorPickerOptions, 'retention list typography must match executor list');
-    const iconSystem = await page.evaluate(() => ({ pictograms: document.querySelectorAll('body img.ui-pictogram').length, previewTools: document.querySelectorAll('body img.preview-tool-icon').length, utilities: document.querySelectorAll('body img.ui-icon').length, legacySvgIcons: document.querySelectorAll('body svg.ui-icon').length, inconsistent: document.querySelectorAll('body svg:not(.ui-icon)').length, inlinePaths: document.querySelectorAll('body svg path, body svg circle, body svg rect').length, externalUses: document.querySelectorAll('body svg use[href^="assets/icons-v2.9.svg#"]').length }));
+    const iconSystem = await page.evaluate(() => ({ pictograms: document.querySelectorAll('body img.ui-pictogram').length, previewTools: document.querySelectorAll('body img.preview-tool-icon').length, utilities: document.querySelectorAll('body img.ui-icon').length, legacySvgIcons: document.querySelectorAll('body svg.ui-icon').length, inconsistent: document.querySelectorAll('body svg:not(.ui-icon)').length, inlinePaths: document.querySelectorAll('body svg path, body svg circle, body svg rect').length, externalUses: document.querySelectorAll('body svg use').length }));
     assert.equal(iconSystem.pictograms, 8, 'main product symbols must use object-based illustrated pictograms');
     assert.equal(iconSystem.previewTools, 6, 'preview controls must use reliable standalone image files');
     assert.ok(iconSystem.utilities >= 10, 'utility controls must keep the unified standalone image system');
@@ -560,7 +560,7 @@ async function fill(page, data = validData) {
       if (!navigator.serviceWorker.controller) await new Promise(resolve => navigator.serviceWorker.addEventListener('controllerchange', resolve, { once: true }));
     });
     const caches = await page.evaluate(() => window.caches.keys());
-    assert.ok(caches.includes('acts-constructor-v3.0.0-20260914-r13'));
+    assert.ok(caches.includes('acts-constructor-v3.0.0-20260917-r14'));
     await context.setOffline(true);
     const offlinePage = await context.newPage();
     await offlinePage.goto(baseUrl, { waitUntil: 'domcontentloaded' });
