@@ -132,6 +132,7 @@
         window.dispatchEvent(new CustomEvent("acts:pwa-update", { detail: {
           apply: () => {
             updateRequested = true;
+            try { sessionStorage.setItem('actsPwaUpdatePendingV2', '1'); } catch (_) {}
             worker.postMessage({ type: "SKIP_WAITING" });
           }
         } }));

@@ -226,14 +226,54 @@ input[type=date]::-webkit-datetime-edit{min-width:0;overflow:hidden}
 .quick-actions .mini-button{width:100%;min-width:0;white-space:normal}
 @media(max-width:699px){.quick-actions,.backup-actions{grid-template-columns:1fr}.quick-actions .mini-button:first-child{grid-column:auto}}
 
-/* On phones the city panorama is a separate cropped strip, never a text backdrop. */
+/* Controls sharing a row have one touch target height. */
+.draft-row .executor-trigger,.draft-row .compact-actions .mini-button{height:36px;min-height:36px}
+.work-tools .draft-row{align-items:stretch}
+.draft-row .draft-select-field,.draft-row .compact-actions{height:36px}
+.draft-row .compact-actions{flex-wrap:nowrap;align-items:stretch}
+.quick-actions .mini-button,.backup-actions .mini-button{height:auto;min-height:42px;padding:4px 8px;font-size:13px;line-height:1.2}
+.reuse-row .searchable-input,.reuse-row .library-actions .mini-button{height:36px;min-height:36px}
 @media(max-width:699px){
-  .hero{min-height:0;grid-template-columns:48px minmax(0,1fr);gap:9px;padding:9px 10px 0;align-items:start}
-  .hero-brand{align-self:start}
-  .hero-copy{padding:2px 0 10px}
+  .quick-actions .mini-button,.backup-actions .mini-button{min-height:42px;font-size:14px}
+  .draft-row .executor-trigger,.draft-row .compact-actions .mini-button,
+  .reuse-row .searchable-input,.reuse-row .library-actions .mini-button{height:42px;min-height:42px}
+  .draft-row .draft-select-field,.draft-row .compact-actions{height:42px}
+  .draft-row .compact-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
+.field-customer-basis{position:relative}
+.field-customer-basis:focus-within{z-index:2}
+.field-customer-basis .case-hint{display:none;position:absolute;top:calc(100% + 5px);right:0;z-index:2;width:max-content;max-width:100%;padding:5px 8px;border:1px solid #c8d9f2;border-radius:8px;background:#eef5ff;color:#315782;font-size:12px;line-height:1.25;box-shadow:0 5px 12px rgba(24,66,119,.09);pointer-events:none}
+.field-customer-basis #customerBasis:focus + .case-hint{display:block}
+/* Keep the skyline inside the compact mobile header, behind a readable fade. */
+@media(max-width:699px){
+  .hero{min-height:102px;grid-template-columns:48px minmax(0,1fr);gap:9px;padding:9px 10px;align-items:center}
+  .hero-brand{align-self:center}
+  .hero-copy{padding:0}
   .hero h1{font-size:clamp(24px,7.1vw,30px);line-height:1}
   .hero p{margin-top:5px;line-height:1.25}
-  .hero-skyline{position:relative;inset:auto;grid-column:1/-1;width:calc(100% + 20px);height:68px;margin:0 -10px;opacity:1;overflow:hidden}
-  .hero-skyline:before{background:none}
-  .hero-skyline img{width:100%;height:100%;object-fit:cover;object-position:center 62%}
+  .hero-skyline{position:absolute;inset:0 0 0 auto;grid-column:auto;width:72%;height:100%;margin:0;opacity:1;overflow:hidden}
+  .hero-skyline:before{background:linear-gradient(90deg,#fff 0%,rgba(255,255,255,.96) 20%,rgba(255,255,255,.60) 48%,rgba(255,255,255,.12) 78%,transparent 100%)}
+  .hero-skyline img{width:280%;max-width:none;height:100%;margin-left:-130%;object-fit:cover;object-position:center 38%}
+}
+@media(min-width:500px) and (max-width:699px){
+  .hero-skyline img{width:200%;margin-left:-80%;object-position:center 44%}
+}
+
+/* Desktop art direction: keep the original compact height and crop sky and water. */
+@media(min-width:700px){
+  .hero{min-height:84px;padding:8px 18px}
+  .hero-skyline{inset:0 0 0 auto;width:56%;height:100%}
+  .hero-skyline:before{background:linear-gradient(90deg,#fff 0%,rgba(255,255,255,.82) 17%,rgba(255,255,255,.12) 44%,transparent 62%)}
+  .hero-skyline img{object-fit:cover;object-position:center 47%}
+}
+.hero-copy{align-self:center}
+#previewStage{contain:size}
+@media(min-width:700px) and (max-width:767px){
+  .site-footer{grid-template-columns:minmax(0,1fr) auto;gap:6px 12px}
+  .footer-version{grid-column:1;grid-row:1}
+  .footer-install{grid-column:2;grid-row:1}
+  .footer-runtime{grid-column:1;grid-row:2}
+  .footer-care{grid-column:2;grid-row:2}
+  .footer-privacy{grid-column:1/-1;grid-row:3;justify-self:start}
 }

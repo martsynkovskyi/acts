@@ -1,0 +1,5 @@
+exclude:
+  - package.json
+  - tests
+  - assets/app-icon-source.png
+  - assets/social-preview-background.png

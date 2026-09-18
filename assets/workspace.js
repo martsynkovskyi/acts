@@ -45,6 +45,7 @@
     const draftSelect = document.getElementById('draftSelect');
     const storageToggle = document.getElementById('storageEnabled');
     const retentionSelect = document.getElementById('retentionDays');
+    const themeSelect = document.getElementById('themeChoice');
     const privacyText = document.getElementById('privacyText');
     let saveTimer = 0;
     let nameMode = 'new';
@@ -57,10 +58,12 @@
     const executorValues = new Set(['rr', 'rrPoa', 'rrms', 'rrs']);
     const settingsPickers = [
       { select: draftSelect, picker: document.getElementById('draftPicker'), trigger: document.getElementById('draftPickerButton'), label: document.getElementById('draftPickerLabel'), options: document.getElementById('draftPickerOptions') },
-      { select: retentionSelect, picker: document.getElementById('retentionPicker'), trigger: document.getElementById('retentionPickerButton'), label: document.getElementById('retentionPickerLabel'), options: document.getElementById('retentionPickerOptions') }
+      { select: retentionSelect, picker: document.getElementById('retentionPicker'), trigger: document.getElementById('retentionPickerButton'), label: document.getElementById('retentionPickerLabel'), options: document.getElementById('retentionPickerOptions') },
+      { select: themeSelect, picker: document.getElementById('themePicker'), trigger: document.getElementById('themePickerButton'), label: document.getElementById('themePickerLabel'), options: document.getElementById('themePickerOptions') }
     ];
     const draftPicker = settingsPickers[0];
     const retentionPicker = settingsPickers[1];
+    const themePicker = settingsPickers[2];
 
     function nowIso() { return new Date().toISOString(); }
     function todayLocal() { const date = new Date(); return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 10); }
@@ -361,6 +364,10 @@
       const retentionText = prefs.retentionDays === 'always' ? 'без ограничения срока' : prefs.retentionDays === 365 ? 'не более 1 года' : prefs.retentionDays === 183 ? 'не более полугода' : 'не более 30 дней';
       privacyText.textContent = !prefs.storageEnabled ? 'Сохранение отключено. Данные существуют только до закрытия этой вкладки и никуда не передаются.' : `Данные хранятся только на этом компьютере ${retentionText} и никуда не передаются.`;
     }
+    function renderTheme() {
+      themeSelect.value = window.__ACTS_THEME__.choice;
+      renderSettingsPicker(themePicker);
+    }
     function toast(message, tone = 'success') {
       const root = document.getElementById('toast');
       document.getElementById('toastMessage').textContent = message;
@@ -373,13 +380,17 @@
     function updateField(id, value) {
       fields[id].value = value == null ? '' : String(value);
     }
+    function sameCustomerRepresentative(card, values) {
+      return normalize(card.customer).toLocaleLowerCase('ru') === normalize(values.customer).toLocaleLowerCase('ru')
+        && normalize(card.name).toLocaleLowerCase('ru') === normalize(values.name).toLocaleLowerCase('ru');
+    }
     function addCustomer(silent = false) {
       const values = { customer: normalize(fields.customer.value), position: normalize(fields.customerPosition.value), name: normalize(fields.customerName.value), basis: normalize(fields.customerBasis.value) };
       if (!values.customer || !values.position || !values.name || !values.basis) { if (!silent) toast('Заполните все сведения о Заказчике и его представителе.', 'warn'); return; }
-      const found = state.customerCards.find(card => card.customer.toLocaleLowerCase('ru') === values.customer.toLocaleLowerCase('ru'));
+      const found = state.customerCards.find(card => sameCustomerRepresentative(card, values));
       if (found) {
         selectedLibrary.customer = found.id; document.getElementById('customerCardSelect').value = libraryLabel(libraryConfigs.customer, found); renderLibraries();
-        if (!silent) toast('Карточка этого Заказчика уже существует. Для изменений нажмите «Обновить».', 'warn');
+        if (!silent) toast('Карточка с таким Заказчиком и представителем уже существует. Для изменений нажмите «Обновить».', 'warn');
         return;
       }
       const card = { id: uid(), ...values, updatedAt: nowIso() };
@@ -413,7 +424,7 @@
       const values = { customer: normalize(fields.customer.value), position: normalize(fields.customerPosition.value), name: normalize(fields.customerName.value), basis: normalize(fields.customerBasis.value) };
       if (!card) { toast('Сначала выберите сохраненного Заказчика из списка.', 'warn'); return; }
       if (!values.customer || !values.position || !values.name || !values.basis) { toast('Заполните все сведения о Заказчике и его представителе.', 'warn'); return; }
-      if (state.customerCards.some(item => item.id !== card.id && item.customer.toLocaleLowerCase('ru') === values.customer.toLocaleLowerCase('ru'))) { toast('Заказчик с таким наименованием уже сохранен.', 'warn'); return; }
+      if (state.customerCards.some(item => item.id !== card.id && sameCustomerRepresentative(item, values))) { toast('Карточка с таким Заказчиком и представителем уже сохранена.', 'warn'); return; }
       Object.assign(card, values, { updatedAt: nowIso() }); document.getElementById('customerCardSelect').value = libraryLabel(libraryConfigs.customer, card);
       persistState(); renderLibraries(); toast('Карточка заказчика обновлена.');
     }
@@ -513,8 +524,18 @@
     }
     function saveDefaults() {
       prefs.defaults = { city: normalize(document.getElementById('defaultCity').value), servicePlace: normalize(document.getElementById('defaultServicePlace').value), dateMode: document.getElementById('defaultDateMode').value };
-      persistPrefs(); persistState(); renderPrivacy(); closeDefaults();
-      toast(prefs.storageEnabled ? 'Значения по умолчанию сохранены.' : 'Значения будут действовать только в этой вкладке.');
+      const values = api.snapshot();
+      let applied = false;
+      for (const id of ['city', 'servicePlace']) {
+        if (prefs.defaults[id] && !normalize(values[id])) {
+          values[id] = prefs.defaults[id]; applied = true;
+        }
+      }
+      if (prefs.defaults.dateMode === 'today' && !values.actDate) { values.actDate = todayLocal(); applied = true; }
+      if (applied) { restore(values); saveCurrent(true); }
+      persistPrefs(); if (!applied) persistState(); renderPrivacy(); closeDefaults();
+      const message = applied ? 'Значения сохранены и применены к текущему шаблону.' : 'Значения сохранены для новых и очищенных шаблонов.';
+      toast(prefs.storageEnabled ? message : `${message} Только в этой вкладке.`);
     }
     function toggleStorage() {
       prefs.storageEnabled = storageToggle.checked;
@@ -713,7 +734,7 @@
           basis: normalize(item?.basis || matchingDraft?.fields?.customerBasis || legacySigner?.basis).slice(0, 220),
           updatedAt: item?.updatedAt || nowIso()
         };
-      }).filter(item => item.customer), ['customer', 'position', 'name', 'basis']);
+      }).filter(item => item.customer), ['customer', 'name']);
     }
     function parseBackup(text) {
       let parsed;
@@ -751,7 +772,7 @@
       } finally { document.getElementById('backupFileInput').value = ''; }
     }
 
-    renderDrafts(); renderLibraries(); bindLibraries(); bindExecutorPicker(); renderPrivacy(); bindSettingsPickers(); updateContractPlaceholder();
+    renderDrafts(); renderLibraries(); bindLibraries(); bindExecutorPicker(); renderPrivacy(); renderTheme(); bindSettingsPickers(); updateContractPlaceholder();
     const selected = currentDraft();
     if (selected?.fields && JSON.stringify(selected.fields) !== JSON.stringify(api.snapshot())) restore(selected.fields);
     persistPrefs(); persistState();
@@ -776,6 +797,8 @@
     document.getElementById('deleteServiceBtn').onclick = () => deleteLibrary('service');
     storageToggle.onchange = toggleStorage;
     retentionSelect.onchange = changeRetention;
+    themeSelect.onchange = () => window.__ACTS_THEME__.set(themeSelect.value);
+    window.addEventListener('acts:theme', renderTheme);
     document.getElementById('defaultsBtn').onclick = openDefaults;
     document.getElementById('cancelDefaultsBtn').onclick = closeDefaults;
     document.querySelector('[data-close-defaults]').onclick = closeDefaults;

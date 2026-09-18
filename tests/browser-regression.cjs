@@ -60,16 +60,22 @@ async function fill(page, data = validData) {
     await page.goto(baseUrl, { waitUntil: 'networkidle' });
 
     assert.equal(await page.evaluate(() => window.__ACTS_TEST_API__?.APP_VERSION), '3.1');
-    assert.match(await page.locator('.footer-version').innerText(), /Версия 3\.1 \(17\.09\.2026\)/);
+    assert.match(await page.locator('.footer-version').innerText(), /Версия 3\.1 \(18\.09\.2026\)/);
     assert.equal((await page.locator('#importXlsxBtn').textContent()).trim(), 'Загрузить данные из акта');
-    assert.equal(await page.locator('#importXlsxBtn img[src="assets/pictogram-excel-v2.9.svg"]').count(), 1);
+    assert.equal(await page.locator('#importXlsxBtn img[src="assets/pictogram-excel.svg"]').count(), 1);
     assert.equal((await page.locator('#downloadXlsxBtn .button-label').textContent()).trim(), 'Скачать акт');
-    assert.equal(await page.locator('#downloadXlsxBtn img[src="assets/pictogram-excel-v2.9.svg"]').count(), 1);
+    assert.equal(await page.locator('#downloadXlsxBtn img[src="assets/pictogram-excel.svg"]').count(), 1);
+    assert.equal(await page.locator('#customerBasis').getAttribute('placeholder'), 'Устава / доверенности № ...');
+    await page.locator('#customerBasis').focus();
+    assert.equal(await page.locator('#customerBasisCaseHint').innerText(), 'Вводить в родительном падеже');
+    assert.equal(await page.locator('#customerBasisCaseHint').isVisible(), true);
+    await page.locator('#customerName').focus();
+    assert.equal(await page.locator('#customerBasisCaseHint').isVisible(), false);
     assert.equal(await page.locator('#retentionDays').inputValue(), 'always');
     assert.equal((await page.evaluate(() => window.__ACTS_WORKSPACE_TEST_API__.getPreferences())).retentionDays, 'always');
     assert.match(await page.locator('#privacyText').innerText(), /без ограничения срока/);
     const selectTypography = await page.evaluate(() => {
-      const values = ['executorPickerLabel', 'draftPickerLabel', 'retentionPickerLabel'].map(id => {
+      const values = ['executorPickerLabel', 'draftPickerLabel', 'retentionPickerLabel', 'themePickerLabel'].map(id => {
         const style = getComputedStyle(document.getElementById(id));
         return { id, fontFamily: style.fontFamily, fontSize: style.fontSize, fontWeight: style.fontWeight, lineHeight: style.lineHeight, color: style.color };
       });
@@ -77,8 +83,9 @@ async function fill(page, data = validData) {
     });
     assert.deepEqual(selectTypography.draftPickerLabel, selectTypography.executorPickerLabel, 'draft selector typography must match executor value');
     assert.deepEqual(selectTypography.retentionPickerLabel, selectTypography.executorPickerLabel, 'retention selector typography must match executor value');
+    assert.deepEqual(selectTypography.themePickerLabel, selectTypography.executorPickerLabel, 'theme selector typography must match executor value');
     const listTypography = await page.evaluate(() => {
-      const ids = ['executorPickerOptions', 'draftPickerOptions', 'retentionPickerOptions'];
+      const ids = ['executorPickerOptions', 'draftPickerOptions', 'retentionPickerOptions', 'themePickerOptions'];
       return Object.fromEntries(ids.map(id => {
         const style = getComputedStyle(document.querySelector(`#${id} .library-option[aria-selected="true"] strong`));
         return [id, { fontFamily: style.fontFamily, fontSize: style.fontSize, fontWeight: style.fontWeight, lineHeight: style.lineHeight, color: style.color }];
@@ -86,6 +93,7 @@ async function fill(page, data = validData) {
     });
     assert.deepEqual(listTypography.draftPickerOptions, listTypography.executorPickerOptions, 'draft list typography must match executor list');
     assert.deepEqual(listTypography.retentionPickerOptions, listTypography.executorPickerOptions, 'retention list typography must match executor list');
+    assert.deepEqual(listTypography.themePickerOptions, listTypography.executorPickerOptions, 'theme list typography must match executor list');
     const iconSystem = await page.evaluate(() => ({ pictograms: document.querySelectorAll('body img.ui-pictogram').length, previewTools: document.querySelectorAll('body img.preview-tool-icon').length, utilities: document.querySelectorAll('body img.ui-icon').length, legacySvgIcons: document.querySelectorAll('body svg.ui-icon').length, inconsistent: document.querySelectorAll('body svg:not(.ui-icon)').length, inlinePaths: document.querySelectorAll('body svg path, body svg circle, body svg rect').length, externalUses: document.querySelectorAll('body svg use').length }));
     assert.equal(iconSystem.pictograms, 9, 'main product symbols must use object-based illustrated pictograms');
     assert.equal(iconSystem.previewTools, 6, 'preview controls must use reliable standalone image files');
@@ -98,11 +106,14 @@ async function fill(page, data = validData) {
     assert.equal(await page.locator('#zoomInBtn img').evaluate(image => image.complete && image.naturalWidth > 0), true);
     assert.equal(await page.locator('#openPreviewBtn img').evaluate(image => image.complete && image.naturalWidth > 0), true);
     await page.locator('#workTools').evaluate(element => { element.open = true; });
-    assert.equal((await page.locator('#downloadBlankTemplateBtn').innerText()).trim(), 'Скачать пустой шаблон');
+    assert.equal((await page.locator('#downloadBlankTemplateBtn').innerText()).trim(), 'Скачать пустой шаблон акта');
+    assert.equal((await page.locator('#importBackupBtn').innerText()).trim(), 'Восстановить из резервной копии');
+    assert.equal((await page.locator('#retentionLabel').innerText()).trim(), 'Сохранять данные на компьютере');
+    assert.equal(await page.getByText('Хранить', { exact: true }).count(), 0);
     const settingsActionLayout = async () => page.evaluate(() => {
       const measure = selector => [...document.querySelectorAll(selector)].map(button => {
         const rect = button.getBoundingClientRect();
-        return { left: rect.left, right: rect.right, top: rect.top, width: rect.width };
+        return { left: rect.left, right: rect.right, top: rect.top, width: rect.width, height: rect.height };
       });
       return { quick: measure('.quick-actions .mini-button'), backup: measure('.backup-actions .mini-button'), available: document.querySelector('.quick-actions').getBoundingClientRect().width };
     });
@@ -111,7 +122,49 @@ async function fill(page, data = validData) {
     assert.equal(desktopActions.backup.length, 3);
     assert.ok(desktopActions.quick.every(button => Math.abs(button.top - desktopActions.quick[0].top) <= 1), 'quick actions must share one desktop row');
     assert.ok(desktopActions.quick.every((button, index) => Math.abs(button.width - desktopActions.backup[index].width) <= 1), 'both settings rows must use matching button widths');
+    assert.ok([...desktopActions.quick, ...desktopActions.backup].every(button => Math.abs(button.height - desktopActions.quick[0].height) <= 1), 'settings actions must have one height across both rows');
     assert.ok(Math.abs(desktopActions.quick[2].right - desktopActions.backup[2].right) <= 1, 'quick actions must fill the available width');
+    const preferenceLayout = await page.evaluate(() => {
+      const rect = selector => document.querySelector(selector).getBoundingClientRect();
+      const font = selector => getComputedStyle(document.querySelector(selector)).fontSize;
+      return {
+        themeGap: rect('#themePickerButton').left - rect('#themeLabel').right,
+        storageGap: rect('#retentionPickerButton').left - rect('#retentionLabel').right,
+        storageRight: rect('.storage-row').right,
+        rowRight: rect('.settings-preferences-row').right,
+        buttonFonts: [...document.querySelectorAll('.quick-actions .mini-button, .backup-actions .mini-button')].map(button => getComputedStyle(button).fontSize),
+        themeFont: font('#themeLabel'), storageFont: font('#retentionLabel')
+      };
+    });
+    assert.ok(preferenceLayout.buttonFonts.every(font => font === preferenceLayout.themeFont && font === preferenceLayout.storageFont), 'six settings buttons must match preference label typography');
+    assert.ok(Math.abs(preferenceLayout.themeGap - preferenceLayout.storageGap) <= 1, 'theme and storage must have matching label-to-picker spacing');
+    assert.ok(Math.abs(preferenceLayout.storageRight - preferenceLayout.rowRight) <= 1, 'storage controls must align with the right edge');
+    assert.equal(await page.evaluate(() => Math.abs(document.querySelector('.appearance-row').getBoundingClientRect().top - document.querySelector('.storage-row').getBoundingClientRect().top) <= 1), true, 'theme and storage must share one row at 1440px');
+    await page.setViewportSize({ width: 1920, height: 1080 });
+    const settingsControls = await page.evaluate(() => {
+      const height = selector => document.querySelector(selector).getBoundingClientRect().height;
+      const theme = document.querySelector('.appearance-row').getBoundingClientRect();
+      const storage = document.querySelector('.storage-row').getBoundingClientRect();
+      return {
+        draft: [height('#draftPickerButton'), ...[...document.querySelectorAll('.compact-actions .mini-button')].map(button => button.getBoundingClientRect().height)],
+        customer: [height('#customerCardSelect'), ...[...document.querySelectorAll('#saveCustomerBtn, #updateCustomerBtn, #deleteCustomerBtn')].map(button => button.getBoundingClientRect().height)],
+        services: [height('#serviceTemplateSelect'), ...[...document.querySelectorAll('#saveServiceBtn, #updateServiceBtn, #deleteServiceBtn')].map(button => button.getBoundingClientRect().height)],
+        samePreferenceRow: Math.abs(theme.top - storage.top) <= 1,
+        preferenceOrder: theme.left < storage.left,
+        settingsOrder: document.querySelector('#downloadBlankTemplateBtn').closest('.quick-actions') !== null && document.querySelector('#defaultsBtn').closest('.backup-actions') !== null
+      };
+    });
+    for (const [name, heights] of Object.entries({ draft: settingsControls.draft, customer: settingsControls.customer, services: settingsControls.services })) {
+      assert.ok(heights.every(value => Math.abs(value - heights[0]) <= 1), `${name} controls must share one height`);
+    }
+    assert.equal(settingsControls.samePreferenceRow, true, 'theme and storage belong on one row when space permits');
+    assert.equal(settingsControls.preferenceOrder, true, 'theme precedes storage');
+    assert.equal(settingsControls.settingsOrder, true, 'blank template and defaults buttons must be swapped');
+    const draftAlignment = await page.evaluate(() => {
+      const controls = ['#draftPickerButton', '#newDraftBtn', '#renameDraftBtn', '#deleteDraftBtn'].map(selector => document.querySelector(selector).getBoundingClientRect());
+      return controls.map(rect => ({ top: rect.top, bottom: rect.bottom }));
+    });
+    assert.ok(draftAlignment.every(rect => Math.abs(rect.top - draftAlignment[0].top) <= 1 && Math.abs(rect.bottom - draftAlignment[0].bottom) <= 1), 'template selector and actions must be aligned on both edges');
     await page.setViewportSize({ width: 390, height: 844 });
     const mobileActions = await settingsActionLayout();
     assert.ok(mobileActions.quick.every(button => Math.abs(button.width - mobileActions.available) <= 1), 'mobile quick actions must use full width');
@@ -311,7 +364,9 @@ async function fill(page, data = validData) {
     assert.equal(await page.locator('#customer').inputValue(), validData.customer);
 
     await page.locator('#customer').fill('');
-    await page.locator('#xlsxFileInput').setInputFiles(xlsxPath);
+    const importChooser = page.waitForEvent('filechooser');
+    await page.locator('#importXlsxBtn').click();
+    await (await importChooser).setFiles(xlsxPath);
     await page.waitForFunction(expected => document.getElementById('customer').value === expected, validData.customer);
     assert.equal(await page.locator('#contractNumber').inputValue(), validData.contractNumber);
     assert.equal(await page.locator('#customerName').inputValue(), validData.customerName);
@@ -414,11 +469,18 @@ async function fill(page, data = validData) {
       }
     }
 
+    const existingCity = await page.locator('#city').inputValue();
+    assert.ok(existingCity, 'current template must contain a manually entered city');
+    await page.locator('#servicePlace').fill('');
+    await page.locator('#actDate').fill('');
     await page.locator('#defaultsBtn').click();
     await page.locator('#defaultCity').fill('Москва');
     await page.locator('#defaultServicePlace').fill('Москва, Россия');
     await page.locator('#defaultDateMode').selectOption('today');
     await page.locator('#saveDefaultsBtn').click();
+    assert.equal(await page.locator('#city').inputValue(), existingCity, 'saving defaults must preserve an already filled city');
+    assert.equal(await page.locator('#servicePlace').inputValue(), 'Москва, Россия', 'saving defaults must fill an empty field immediately');
+    assert.equal(await page.locator('#actDate').inputValue(), await page.evaluate(() => { const date = new Date(); return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 10); }), 'today default must fill the current empty date immediately');
     assert.deepEqual(await page.locator('#retentionDays option').allInnerTexts(), ['30 дней', 'Полгода', '1 год', 'Навсегда']);
     await page.locator('#retentionDays').selectOption('183');
     assert.equal((await page.evaluate(() => window.__ACTS_WORKSPACE_TEST_API__.getPreferences())).retentionDays, 183);
@@ -561,7 +623,7 @@ async function fill(page, data = validData) {
     await retentionContext.close();
 
     const socialPreview = await page.evaluate(() => new Promise((resolve, reject) => {
-      const image = new Image(); image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight }); image.onerror = reject; image.src = 'preview-v3.0.png';
+      const image = new Image(); image.onload = () => resolve({ width: image.naturalWidth, height: image.naturalHeight }); image.onerror = reject; image.src = 'preview.png';
     }));
     assert.deepEqual(socialPreview, { width: 1200, height: 630 });
     assert.equal(await page.locator('.hero-brand img').getAttribute('src'), 'icons/icon-192.png');
@@ -571,8 +633,8 @@ async function fill(page, data = validData) {
       const done = () => resolve({ src: image.getAttribute('src'), width: image.naturalWidth, height: image.naturalHeight });
       if (image.complete && image.naturalWidth) done(); else { image.addEventListener('load', done, { once: true }); image.addEventListener('error', reject, { once: true }); }
     }));
-    assert.deepEqual(heroArtwork, { src: 'assets/hero-city-color-v2.10.png', width: 2172, height: 724 });
-    assert.match(fs.readFileSync(path.join(root, 'assets', 'styles-v2.9.css'), 'utf8'), /::-webkit-date-and-time-value\{[^}]*align-items:center/);
+    assert.deepEqual(heroArtwork, { src: 'assets/hero-city-color.png', width: 2172, height: 724 });
+    assert.match(fs.readFileSync(path.join(root, 'assets', 'styles.css'), 'utf8'), /::-webkit-date-and-time-value\{[^}]*align-items:center/);
 
     await page.locator('#workTools').evaluate(element => { element.open = false; });
     await page.locator('#executor').selectOption('rr');
@@ -582,10 +644,51 @@ async function fill(page, data = validData) {
     const footerRects = await page.locator('.site-footer > *:visible').evaluateAll(elements => elements.map(element => { const rect = element.getBoundingClientRect(); return { top: rect.top, bottom: rect.bottom }; }));
     assert.ok(Math.max(...footerRects.map(rect => rect.top)) < Math.min(...footerRects.map(rect => rect.bottom)), 'desktop footer content must stay in one row');
 
-    for (const viewport of [{ width: 1920, height: 1080 }, { width: 1366, height: 768 }, { width: 1024, height: 768 }, { width: 402, height: 874 }, { width: 390, height: 844 }, { width: 320, height: 568 }]) {
+    await page.setViewportSize({ width: 1366, height: 768 });
+    const panelHeights = () => page.evaluate(() => ({ form: document.querySelector('.form-panel').getBoundingClientRect().height, preview: document.querySelector('.preview-panel').getBoundingClientRect().height }));
+    const settledHeights = async () => { await page.waitForTimeout(220); return panelHeights(); };
+    const compactPanels = await settledHeights();
+    assert.ok(Math.abs(compactPanels.form - compactPanels.preview) <= 1, 'compact desktop panels must match heights');
+    await page.locator('#workTools').evaluate(element => { element.open = true; });
+    const expandedSettingsPanels = await settledHeights();
+    assert.ok(expandedSettingsPanels.form > compactPanels.form + 50, 'opening settings must expand both panels');
+    await page.locator('#workTools').evaluate(element => { element.open = false; });
+    const collapsedSettingsPanels = await settledHeights();
+    assert.ok(Math.abs(collapsedSettingsPanels.form - compactPanels.form) <= 1, 'form must return to its original height after closing settings');
+    assert.ok(Math.abs(collapsedSettingsPanels.preview - compactPanels.preview) <= 1, 'preview must return to its original height after closing settings');
+    await page.locator('#executor').selectOption('rrPoa');
+    const expandedPoaPanels = await settledHeights();
+    assert.ok(expandedPoaPanels.form > compactPanels.form + 50, 'power-of-attorney fields must expand both panels');
+    await page.locator('#executor').selectOption('rr');
+    const collapsedPoaPanels = await settledHeights();
+    assert.ok(Math.abs(collapsedPoaPanels.form - compactPanels.form) <= 1, 'form must return to its original height after hiding power-of-attorney fields');
+    assert.ok(Math.abs(collapsedPoaPanels.preview - compactPanels.preview) <= 1, 'preview must return to its original height after hiding power-of-attorney fields');
+    await page.locator('#workTools').evaluate(element => { element.open = true; });
+    await page.locator('#executor').selectOption('rrPoa');
+    const combinedExpandedPanels = await settledHeights();
+    assert.ok(combinedExpandedPanels.form > expandedSettingsPanels.form, 'combined settings and power-of-attorney fields must expand both panels');
+    await page.locator('#workTools').evaluate(element => { element.open = false; });
+    await page.locator('#executor').selectOption('rr');
+    const combinedCollapsedPanels = await settledHeights();
+    assert.ok(Math.abs(combinedCollapsedPanels.form - compactPanels.form) <= 1, 'form must contract fully after closing both expanded sections');
+    assert.ok(Math.abs(combinedCollapsedPanels.preview - compactPanels.preview) <= 1, 'preview must contract fully after closing both expanded sections');
+    for (let i = 0; i < 4; i++) await page.locator('#zoomInBtn').click();
+    const zoomedPreview = await page.locator('#previewStage').evaluate(element => ({ scrollHeight: element.scrollHeight, clientHeight: element.clientHeight }));
+    assert.ok(zoomedPreview.scrollHeight > zoomedPreview.clientHeight, 'zoomed preview must remain scrollable');
+    await page.locator('#zoomFitBtn').click();
+    const fittedPanels = await settledHeights();
+    assert.ok(Math.abs(fittedPanels.preview - compactPanels.preview) <= 1, 'zoom controls must not leave residual panel height');
+
+    for (const viewport of [{ width: 1920, height: 1080 }, { width: 1366, height: 768 }, { width: 1024, height: 768 }, { width: 768, height: 768 }, { width: 700, height: 768 }, { width: 699, height: 768 }, { width: 440, height: 956 }, { width: 402, height: 874 }, { width: 390, height: 844 }, { width: 320, height: 568 }]) {
       await page.setViewportSize(viewport); await page.waitForTimeout(120);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
       assert.equal(overflow, false, `horizontal overflow at ${viewport.width}px`);
+      const heroCenters = await page.evaluate(() => {
+        const hero = document.querySelector('.hero').getBoundingClientRect();
+        const copy = document.querySelector('.hero-copy').getBoundingClientRect();
+        return { hero: (hero.top + hero.bottom) / 2, copy: (copy.top + copy.bottom) / 2 };
+      });
+      assert.ok(Math.abs(heroCenters.hero - heroCenters.copy) <= 1, `header text must be vertically centered at ${viewport.width}px`);
       const containment = await page.evaluate(() => [...document.querySelectorAll('.form-section')].flatMap(section => {
         const bounds = section.getBoundingClientRect();
         return [...section.querySelectorAll('input:not([type="file"]), textarea, .executor-trigger, .library-actions')].filter(element => element.getClientRects().length > 0).map(element => {
@@ -600,9 +703,11 @@ async function fill(page, data = validData) {
       if (viewport.width >= 1180) {
         if (viewport.width === 1920) await page.screenshot({ path: path.join(outputDir, 'desktop-full-hd.png'), fullPage: true });
         if (viewport.width === 1366) await page.screenshot({ path: path.join(outputDir, 'desktop-1366-viewport.png'), fullPage: false });
-        const desktopMetrics = await page.evaluate(() => ({ appWidth: document.querySelector('.app-shell').getBoundingClientRect().width, heroHeight: document.querySelector('.hero').getBoundingClientRect().height, formHeight: document.querySelector('#actForm').scrollHeight, formPanelHeight: document.querySelector('.form-panel').getBoundingClientRect().height, previewPanelHeight: document.querySelector('.preview-panel').getBoundingClientRect().height, inputHeight: document.querySelector('#city').getBoundingClientRect().height, inputSize: parseFloat(getComputedStyle(document.querySelector('#city')).fontSize), labelSize: parseFloat(getComputedStyle(document.querySelector('label[for="city"]')).fontSize) }));
+        const desktopMetrics = await page.evaluate(() => ({ appWidth: document.querySelector('.app-shell').getBoundingClientRect().width, heroHeight: document.querySelector('.hero').getBoundingClientRect().height, heroWidth: document.querySelector('.hero').getBoundingClientRect().width, skylineWidth: document.querySelector('.hero-skyline').getBoundingClientRect().width, skylineFit: getComputedStyle(document.querySelector('.hero-skyline img')).objectFit, formHeight: document.querySelector('#actForm').scrollHeight, formPanelHeight: document.querySelector('.form-panel').getBoundingClientRect().height, previewPanelHeight: document.querySelector('.preview-panel').getBoundingClientRect().height, inputHeight: document.querySelector('#city').getBoundingClientRect().height, inputSize: parseFloat(getComputedStyle(document.querySelector('#city')).fontSize), labelSize: parseFloat(getComputedStyle(document.querySelector('label[for="city"]')).fontSize) }));
         assert.ok(desktopMetrics.appWidth >= Math.min(1660, viewport.width - 20) - 2, `workspace must use available Full HD width at ${viewport.width}px`);
-        assert.ok(desktopMetrics.heroHeight <= 90, `hero must stay compact at ${viewport.width}px, got ${desktopMetrics.heroHeight}px`);
+        assert.ok(desktopMetrics.heroHeight <= 90, `desktop panorama must preserve the compact header at ${viewport.width}px, got ${desktopMetrics.heroHeight}px`);
+        assert.ok(desktopMetrics.skylineWidth / desktopMetrics.heroWidth <= .57, 'desktop panorama must occupy only the right part of the header');
+        assert.equal(desktopMetrics.skylineFit, 'cover', 'desktop panorama must retain its proportions');
         assert.ok(desktopMetrics.inputHeight <= 38, `inputs must stay compact at ${viewport.width}px`);
         assert.ok(desktopMetrics.labelSize >= 12, 'labels must remain readable');
         assert.ok(Math.abs(desktopMetrics.inputSize - desktopMetrics.labelSize) <= 1.5, 'field labels and values must share one readable scale');
@@ -611,6 +716,25 @@ async function fill(page, data = validData) {
       }
       if (viewport.width === 1024) await page.screenshot({ path: path.join(outputDir, 'desktop-1024-viewport.png'), fullPage: false });
       if (viewport.width <= 402) {
+        await page.locator('#workTools').evaluate(element => { element.open = true; });
+        await page.waitForFunction(() => getComputedStyle(document.querySelector('#repeatActBtn')).fontSize === getComputedStyle(document.querySelector('#themeLabel')).fontSize);
+        const mobilePreferences = await page.evaluate(() => {
+          const rect = selector => document.querySelector(selector).getBoundingClientRect();
+          const font = selector => getComputedStyle(document.querySelector(selector)).fontSize;
+          return {
+            right: rect('.settings-preferences-row').right,
+            themeRight: rect('#themePickerButton').right,
+            storageRight: rect('#retentionPickerButton').right,
+            themeGap: window.innerWidth <= 320 ? rect('#themePickerButton').top - rect('#themeLabel').bottom : rect('#themePickerButton').left - rect('#themeLabel').right,
+            storageGap: window.innerWidth <= 320 ? rect('#retentionPickerButton').top - rect('.toggle-label').bottom : rect('#retentionPickerButton').left - rect('#retentionLabel').right,
+            buttonFonts: [...document.querySelectorAll('.quick-actions .mini-button, .backup-actions .mini-button')].map(button => getComputedStyle(button).fontSize),
+            themeFont: font('#themeLabel'), storageFont: font('#retentionLabel')
+          };
+        });
+        assert.ok(mobilePreferences.themeRight <= mobilePreferences.right + 1 && mobilePreferences.storageRight <= mobilePreferences.right + 1, `settings pickers must remain inside their block at ${viewport.width}px`);
+        assert.ok(Math.abs(mobilePreferences.themeGap - mobilePreferences.storageGap) <= 1, `settings label-to-picker gaps must match at ${viewport.width}px`);
+        assert.ok(mobilePreferences.buttonFonts.every(font => font === mobilePreferences.themeFont && font === mobilePreferences.storageFont), `settings typography must match at ${viewport.width}px`);
+        await page.locator('#workTools').evaluate(element => { element.open = false; });
         await page.locator('#executor').selectOption('rrPoa');
         const executorLabelFits = await page.locator('#executorPickerLabel').evaluate(element => element.scrollWidth <= element.clientWidth + 1);
         assert.equal(executorLabelFits, true, 'full executor name must remain readable on mobile');
@@ -623,31 +747,177 @@ async function fill(page, data = validData) {
           const skylineStyle = getComputedStyle(document.querySelector('.hero-skyline'));
           const copy = document.querySelector('.hero-copy').getBoundingClientRect();
           const skyline = document.querySelector('.hero-skyline').getBoundingClientRect();
-          return { dates: dates.map(({ id, field, section }) => ({ id, left: field.left, right: field.right, sectionLeft: section.left, sectionRight: section.right })), backdrop: panelStyle.backdropFilter || panelStyle.webkitBackdropFilter, mask: skylineStyle.maskImage || skylineStyle.webkitMaskImage, heroCopyBottom: copy.bottom, skylineTop: skyline.top, skylineFit: getComputedStyle(document.querySelector('.hero-skyline img')).objectFit };
+          const hero = document.querySelector('.hero').getBoundingClientRect();
+          return { dates: dates.map(({ id, field, section }) => ({ id, left: field.left, right: field.right, sectionLeft: section.left, sectionRight: section.right })), backdrop: panelStyle.backdropFilter || panelStyle.webkitBackdropFilter, mask: skylineStyle.maskImage || skylineStyle.webkitMaskImage, heroTop: hero.top, heroHeight: hero.height, heroCopyBottom: copy.bottom, skylineTop: skyline.top, skylineHeight: skyline.height, skylineFit: getComputedStyle(document.querySelector('.hero-skyline img')).objectFit };
         });
         mobileMetrics.dates.forEach(rect => { assert.ok(rect.left >= rect.sectionLeft - 1, `${rect.id} must not overflow left`); assert.ok(rect.right <= rect.sectionRight + 1, `${rect.id} must not overflow right`); });
         assert.equal(mobileMetrics.backdrop, 'none');
         assert.equal(mobileMetrics.mask, 'none');
-        assert.ok(mobileMetrics.skylineTop >= mobileMetrics.heroCopyBottom - 1, 'mobile panorama must be below the title and subtitle');
+        assert.ok(mobileMetrics.skylineTop <= mobileMetrics.heroTop + 1, 'mobile panorama must be integrated into the header');
+        assert.ok(mobileMetrics.heroHeight <= 112, 'mobile header must preserve space for the form');
         assert.equal(mobileMetrics.skylineFit, 'cover', 'mobile panorama must be cropped without distortion');
         await page.screenshot({ path: path.join(outputDir, `mobile-${viewport.width}.png`), fullPage: true });
+      }
+      if (viewport.width >= 390 && viewport.width <= 440) {
+        await page.locator('#workTools').evaluate(element => { element.open = true; });
+        const centers = await page.evaluate(() => {
+          const center = selector => { const rect = document.querySelector(selector).getBoundingClientRect(); return (rect.left + rect.right) / 2; };
+          return { row: center('.settings-preferences-row'), theme: center('.appearance-row'), storage: center('.retention-picker') };
+        });
+        assert.ok(Math.abs(centers.row - centers.theme) <= 1, `theme controls must be centered when settings wrap at ${viewport.width}px`);
+        assert.ok(Math.abs(centers.row - centers.storage) <= 1, `storage controls must be centered when settings wrap at ${viewport.width}px`);
+        await page.locator('#workTools').evaluate(element => { element.open = false; });
       }
     }
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.screenshot({ path: path.join(outputDir, 'desktop.png'), fullPage: true });
+    const themeContext = await browser.newContext({ colorScheme: 'dark' });
+    const themePage = await themeContext.newPage();
+    await themePage.goto(baseUrl, { waitUntil: 'networkidle' });
+    assert.equal(await themePage.locator('#infoModal').isVisible(), false, 'first-time visitors must not see release notes automatically');
+    assert.equal(await themePage.evaluate(() => localStorage.getItem('actsReleaseBaselineV2')), '3.1');
+    assert.equal(await themePage.evaluate(() => localStorage.getItem('actsReleaseAcknowledgedV2')), null, 'first visit must not be treated as reading release notes');
+    await themePage.reload({ waitUntil: 'networkidle' });
+    await themePage.waitForTimeout(600);
+    assert.equal(await themePage.locator('#infoModal').isVisible(), false, 'ordinary reload without an update must not open release notes');
+    assert.equal(await themePage.evaluate(() => window.__ACTS_THEME__.choice), 'system');
+    assert.equal(await themePage.evaluate(() => window.__ACTS_THEME__.effective), 'dark');
+    assert.equal(await themePage.locator('#themePickerLabel').textContent(), 'Как в системе');
+    await themePage.locator('#workTools').evaluate(element => { element.open = true; });
+    await themePage.locator('#themePickerButton').click();
+    await themePage.locator('#themePickerOptions [data-value="light"]').click();
+    assert.equal(await themePage.evaluate(() => window.__ACTS_THEME__.effective), 'light');
+    await themePage.reload({ waitUntil: 'networkidle' });
+    assert.equal(await themePage.evaluate(() => window.__ACTS_THEME__.choice), 'light', 'manual theme must survive reload');
+    await themePage.emulateMedia({ colorScheme: 'dark' });
+    assert.equal(await themePage.evaluate(() => window.__ACTS_THEME__.effective), 'light', 'manual theme must ignore system changes');
+    await themePage.locator('#workTools').evaluate(element => { element.open = true; });
+    await themePage.locator('#themePickerButton').click();
+    await themePage.locator('#themePickerOptions [data-value="system"]').click();
+    await themePage.emulateMedia({ colorScheme: 'light' });
+    await themePage.waitForFunction(() => window.__ACTS_THEME__.effective === 'light');
+    assert.equal(await themePage.evaluate(() => window.__ACTS_THEME__.effective), 'light');
+    await themePage.emulateMedia({ colorScheme: 'dark' });
+    await themePage.waitForFunction(() => window.__ACTS_THEME__.effective === 'dark');
+    assert.equal(await themePage.evaluate(() => window.__ACTS_THEME__.effective), 'dark', 'system theme must update live');
+    await themePage.waitForTimeout(250);
+    const darkColors = await themePage.evaluate(() => ({ body: getComputedStyle(document.body).backgroundColor, hero: getComputedStyle(document.querySelector('.hero')).backgroundColor, form: getComputedStyle(document.querySelector('.form-section')).backgroundColor, input: getComputedStyle(document.getElementById('customer')).backgroundColor, sheet: getComputedStyle(document.querySelector('.preview-shell canvas')).backgroundColor, heading: getComputedStyle(document.querySelector('.hero h1')).color }));
+    assert.equal(darkColors.hero, 'rgb(20, 36, 58)', 'header must use a dark surface');
+    assert.equal(darkColors.heading, 'rgb(233, 242, 255)', 'header title must remain legible in dark theme');
+    assert.notEqual(darkColors.form, darkColors.sheet, 'form must be dark while document stays white');
+    assert.notEqual(darkColors.input, darkColors.sheet, 'input must use dark surface');
+    assert.equal(darkColors.sheet, 'rgb(255, 255, 255)', 'Excel page must retain white background');
+    await themePage.screenshot({ path: path.join(outputDir, 'theme-dark-desktop.png'), fullPage: true });
+    await themePage.setViewportSize({ width: 390, height: 844 });
+    await themePage.screenshot({ path: path.join(outputDir, 'theme-dark-mobile.png'), fullPage: true });
+    assert.equal(await themePage.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true, 'dark settings must fit mobile viewport');
+    await themeContext.close();
+    const updateContext = await browser.newContext();
+    const updatePage = await updateContext.newPage();
+    await updatePage.goto(baseUrl, { waitUntil: 'networkidle' });
+    assert.equal(await updatePage.locator('#infoModal').isVisible(), false);
+    await updatePage.locator('#aboutServiceBtn').click();
+    await updatePage.locator('#infoModal').waitFor({ state: 'visible' });
+    await updatePage.locator('#infoDoneBtn').click();
+    assert.equal(await updatePage.evaluate(() => localStorage.getItem('actsReleaseAcknowledgedV2')), null, 'opening About alone must not acknowledge release notes');
+    await updatePage.evaluate(() => sessionStorage.setItem('actsPwaUpdatePendingV2', '1'));
+    await updatePage.reload({ waitUntil: 'networkidle' });
+    await updatePage.locator('#infoModal').waitFor({ state: 'visible' });
+    assert.equal(await updatePage.locator('#infoDialogTitle').innerText(), 'Что нового?', 'an explicit update must show unread notes even when the version number stays the same');
+    await updatePage.locator('#infoDoneBtn').click();
+    assert.equal(await updatePage.evaluate(() => localStorage.getItem('actsReleaseAcknowledgedV2')), '3.1');
+    assert.equal(await updatePage.evaluate(() => sessionStorage.getItem('actsPwaUpdatePendingV2')), null);
+    await updatePage.reload({ waitUntil: 'networkidle' });
+    await updatePage.waitForTimeout(600);
+    assert.equal(await updatePage.locator('#infoModal').isVisible(), false, 'acknowledged notes must not repeat on later updates of the same release');
+    await updateContext.close();
+    const infoContext = await browser.newContext({ colorScheme: 'dark' });
+    await infoContext.addInitScript(() => {
+      if (sessionStorage.getItem('actsInfoSeeded')) return;
+      localStorage.setItem('actsWorkspacePreferencesV1', '{}');
+      localStorage.setItem('actsReleaseSeenV1', '3.1');
+      sessionStorage.setItem('actsInfoSeeded', '1');
+    });
+    const infoPage = await infoContext.newPage();
+    await infoPage.goto(baseUrl, { waitUntil: 'networkidle' });
+    await infoPage.locator('#infoModal').waitFor({ state: 'visible' });
+    assert.equal(await infoPage.locator('#infoDialogTitle').innerText(), 'Что нового?');
+    assert.equal(await infoPage.locator('#infoCloseBtn').count(), 0, 'release notes must have one visible close action');
+    assert.equal(await infoPage.locator('#infoDoneBtn').innerText(), 'Понятно 🙂');
+    assert.match(await infoPage.locator('#infoNewsView').innerText(), /светлая и темная темы оформления/);
+    assert.equal(await infoPage.evaluate(() => localStorage.getItem('actsReleaseAcknowledgedV2')), null, 'legacy auto-read marker must not hide unread release notes');
+    await infoPage.screenshot({ path: path.join(outputDir, 'whats-new-dark.png'), fullPage: false });
+    assert.equal(await infoPage.locator('#infoHistoryBtn').innerText(), 'История версий');
+    await infoPage.locator('#infoHistoryBtn').click();
+    assert.equal(await infoPage.locator('#infoDialogTitle').innerText(), 'О сервисе');
+    assert.equal(await infoPage.evaluate(() => localStorage.getItem('actsReleaseAcknowledgedV2')), null, 'opening history alone must not mark changes read');
+    assert.match(await infoPage.locator('#infoAboutView').innerText(), /История версий/);
+    assert.match(await infoPage.locator('#infoAboutView').innerText(), /1\.0 - 28\.05\.2026/);
+    await infoPage.locator('#infoDoneBtn').click();
+    assert.equal(await infoPage.evaluate(() => localStorage.getItem('actsReleaseAcknowledgedV2')), '3.1');
+    await infoPage.reload({ waitUntil: 'networkidle' });
+    await infoPage.waitForTimeout(600);
+    assert.equal(await infoPage.locator('#infoModal').isVisible(), false, 'release notes must not repeat after being read');
+    assert.equal(await infoPage.locator('#aboutServiceBtn').innerText(), 'Версия 3.1 (18.09.2026)');
+    await infoPage.locator('#aboutServiceBtn').hover();
+    await infoPage.locator('#aboutServiceHint').waitFor({ state: 'visible' });
+    assert.equal(await infoPage.locator('#aboutServiceHint').isVisible(), true, 'version hover must explain how to open service information');
+    await infoPage.locator('#aboutServiceBtn').click();
+    await infoPage.locator('#infoModal').waitFor({ state: 'visible' });
+    assert.equal(await infoPage.locator('#infoCloseBtn').count(), 0, 'About must also have only the bottom close action');
+    assert.equal(await infoPage.locator('#infoDoneBtn').innerText(), 'Понятно 🙂');
+    assert.match(await infoPage.locator('#infoAboutView').innerText(), /Хранение данных/);
+    await infoPage.setViewportSize({ width: 390, height: 844 });
+    await infoPage.screenshot({ path: path.join(outputDir, 'about-dark-mobile.png'), fullPage: false });
+    assert.equal(await infoPage.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), true, 'about dialog must fit a mobile viewport');
+    await infoPage.keyboard.press('Escape');
+    assert.equal(await infoPage.locator('#infoModal').isVisible(), false);
+    await infoPage.evaluate(() => { localStorage.setItem('actsReleaseBaselineV2', '3.0'); localStorage.removeItem('actsReleaseAcknowledgedV2'); sessionStorage.removeItem('actsReleaseAcknowledgedV2'); });
+    await infoPage.reload({ waitUntil: 'networkidle' });
+    await infoPage.locator('#infoModal').waitFor({ state: 'visible' });
+    await infoPage.locator('#infoDoneBtn').click();
+    assert.equal(await infoPage.evaluate(() => localStorage.getItem('actsReleaseAcknowledgedV2')), '3.1', 'a newer release must appear once and then be acknowledged');
+    await infoContext.close();
     await page.evaluate(async () => {
       await navigator.serviceWorker.ready;
       if (!navigator.serviceWorker.controller) await new Promise(resolve => navigator.serviceWorker.addEventListener('controllerchange', resolve, { once: true }));
     });
     const caches = await page.evaluate(() => window.caches.keys());
-    assert.ok(caches.includes('acts-constructor-v3.1.0-20260917-r1'));
+    assert.ok(caches.includes('acts-constructor-v3.1.0-20260918-r15'));
     await context.setOffline(true);
     const offlinePage = await context.newPage();
     await offlinePage.goto(baseUrl, { waitUntil: 'domcontentloaded' });
     assert.equal(await offlinePage.evaluate(() => window.__ACTS_TEST_API__?.APP_VERSION), '3.1');
     assert.ok(await offlinePage.evaluate(() => Array.isArray(window.XLSX_TEMPLATE_ENTRIES) && window.XLSX_TEMPLATE_ENTRIES.length > 0));
+    await offlinePage.locator('#aboutServiceBtn').click();
+    await offlinePage.locator('#infoModal').waitFor({ state: 'visible' });
+    assert.match(await offlinePage.locator('#infoAboutView').innerText(), /История версий/, 'version history must work offline');
     await offlinePage.close();
     await context.setOffline(false);
+    const customerContext = await browser.newContext();
+    const customerPage = await customerContext.newPage();
+    await customerPage.goto(baseUrl, { waitUntil: 'networkidle' });
+    await customerPage.locator('#customer').fill('ООО "Общий заказчик"');
+    await customerPage.locator('#customerPosition').fill('директор');
+    await customerPage.locator('#customerName').fill('И.И. Иванов');
+    await customerPage.locator('#customerBasis').fill('Устава');
+    await customerPage.locator('#saveCustomerBtn').click();
+    await customerPage.locator('#customerName').fill('П.П. Петров');
+    await customerPage.locator('#saveCustomerBtn').click();
+    assert.deepEqual((await customerPage.evaluate(() => window.__ACTS_WORKSPACE_TEST_API__.getState().customerCards)).map(card => card.name), ['П.П. Петров', 'И.И. Иванов']);
+    await customerPage.locator('#customer').fill('ООО «Общий заказчик»');
+    await customerPage.locator('#customerPosition').fill('заместитель директора');
+    await customerPage.locator('#saveCustomerBtn').click();
+    assert.equal((await customerPage.evaluate(() => window.__ACTS_WORKSPACE_TEST_API__.getState().customerCards)).length, 2, 'same company and representative must not create a second card');
+    await customerPage.reload({ waitUntil: 'networkidle' });
+    assert.equal((await customerPage.evaluate(() => window.__ACTS_WORKSPACE_TEST_API__.getState().customerCards)).length, 2, 'both representatives must survive reload');
+    await customerPage.locator('#customerCardSelect').fill('И.И. Иванов');
+    await customerPage.locator('#customerCardOptions .library-option').click();
+    assert.equal(await customerPage.locator('#customerName').inputValue(), 'И.И. Иванов', 'customer card must restore the selected representative');
+    await customerPage.locator('#customerName').fill('П.П. Петров');
+    await customerPage.locator('#updateCustomerBtn').click();
+    assert.equal((await customerPage.evaluate(() => window.__ACTS_WORKSPACE_TEST_API__.getState().customerCards)).filter(card => card.name === 'И.И. Иванов').length, 1, 'editing a card must reject an existing company-representative pair');
+    await customerContext.close();
     const clearContext = await browser.newContext();
     const clearPage = await clearContext.newPage();
     await clearPage.goto(baseUrl, { waitUntil: 'networkidle' });
