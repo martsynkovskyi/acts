@@ -408,11 +408,13 @@ async function fill(page, data = validData) {
     assert.equal(await page.locator('#serviceName').inputValue(), validData.serviceName);
 
     await page.emulateMedia({ colorScheme: 'dark' });
+    await page.waitForFunction(() => document.documentElement.dataset.theme === 'dark');
     await page.locator('#customerCardSelect').focus();
     const darkListColors = await page.locator('#customerCardOptions').evaluate(element => ({ background: getComputedStyle(element).backgroundColor, color: getComputedStyle(element).color }));
-    assert.equal(darkListColors.background, 'rgb(255, 255, 255)');
-    assert.equal(darkListColors.color, 'rgb(23, 43, 77)');
+    assert.equal(darkListColors.background, 'rgb(27, 43, 65)');
+    assert.equal(darkListColors.color, 'rgb(237, 243, 252)');
     await page.emulateMedia({ colorScheme: 'light' });
+    await page.waitForFunction(() => document.documentElement.dataset.theme === 'light');
 
     await page.locator('#customer').fill('ООО «Исправленный заказчик»');
     await page.locator('#customerBasis').fill('доверенности № 10');
