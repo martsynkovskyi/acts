@@ -684,7 +684,18 @@ async function fill(page, data = validData) {
     for (const viewport of [{ width: 1920, height: 1080 }, { width: 1366, height: 768 }, { width: 1024, height: 768 }, { width: 768, height: 768 }, { width: 700, height: 768 }, { width: 699, height: 768 }, { width: 440, height: 956 }, { width: 402, height: 874 }, { width: 390, height: 844 }, { width: 320, height: 568 }]) {
       await page.setViewportSize(viewport); await page.waitForTimeout(120);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1);
-      assert.equal(overflow, false, `horizontal overflow at ${viewport.width}px`);
+      if (overflow) {
+        const details = await page.evaluate(() => ({
+          viewport: document.documentElement.clientWidth,
+          page: document.documentElement.scrollWidth,
+          elements: [...document.querySelectorAll('body *')].map(element => ({
+            name: `${element.tagName.toLowerCase()}${element.id ? `#${element.id}` : ''}${element.classList.length ? `.${[...element.classList].join('.')}` : ''}`,
+            right: Math.round(element.getBoundingClientRect().right),
+            left: Math.round(element.getBoundingClientRect().left)
+          })).filter(element => element.right > document.documentElement.clientWidth + 1).slice(0, 15)
+        }));
+        throw new Error(`horizontal overflow at ${viewport.width}px: ${JSON.stringify(details)}`);
+      }
       const heroCenters = await page.evaluate(() => {
         const hero = document.querySelector('.hero').getBoundingClientRect();
         const copy = document.querySelector('.hero-copy').getBoundingClientRect();
