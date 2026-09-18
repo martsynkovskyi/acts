@@ -1,7 +1,7 @@
 "use strict";
 
 const CACHE_PREFIX = "acts-constructor-";
-const CACHE_NAME = `${CACHE_PREFIX}v3.1.0-20260918-r17`;
+const CACHE_NAME = `${CACHE_PREFIX}v3.1.0-20260918-r18`;
 const OFFLINE_URL = "./index.html";
 const APP_SHELL = [
   "./index.html",

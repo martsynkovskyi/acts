@@ -382,7 +382,7 @@
       retentionSelect.disabled = !prefs.storageEnabled;
       renderSettingsPicker(retentionPicker);
       const retentionText = prefs.retentionDays === 'always' ? 'без ограничения срока' : prefs.retentionDays === 365 ? 'не более 1 года' : prefs.retentionDays === 183 ? 'не более полугода' : 'не более 30 дней';
-      privacyText.textContent = !prefs.storageEnabled ? 'Сохранение отключено. Данные существуют только до закрытия этой вкладки и никуда не передаются.' : `Данные хранятся только на этом компьютере ${retentionText} и никуда не передаются.`;
+      privacyText.textContent = !prefs.storageEnabled ? 'Сохранение отключено. Данные существуют только до закрытия этой вкладки и никуда не передаются.' : `Данные хранятся только на этом устройстве ${retentionText} и никуда не передаются.`;
     }
     function renderTheme() {
       themeSelect.value = window.__ACTS_THEME__.choice;
