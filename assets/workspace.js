@@ -50,6 +50,7 @@
     let saveTimer = 0;
     let nameMode = 'new';
     let state = loadState(api.snapshot());
+    let workingDrafts = new Map();
     const selectedLibrary = { customer: null, executorSigner: null, service: null };
     const executorPicker = document.getElementById('executorPickerButton')?.closest('.executor-picker');
     const executorTrigger = document.getElementById('executorPickerButton');
@@ -72,6 +73,16 @@
     prefs.defaults.city = normalize(prefs.defaults.city);
     prefs.defaults.servicePlace = normalize(prefs.defaults.servicePlace);
     function currentDraft() { return state.drafts.find(draft => draft.id === state.activeDraftId) || state.drafts[0]; }
+    function currentWorkingFields(draft = currentDraft()) { return workingDrafts.get(draft.id) || draft.fields; }
+    function templateStatus(status, message) {
+      document.getElementById('saveIndicator').dataset.state = status;
+      document.getElementById('saveStatusText').textContent = message;
+    }
+    function syncTemplateStatus() {
+      const same = JSON.stringify(sanitizedFields(api.snapshot())) === JSON.stringify(currentDraft().fields);
+      if (!prefs.storageEnabled) templateStatus(same ? 'idle' : 'dirty', same ? 'Сохранение отключено' : 'Несохраненные изменения');
+      else templateStatus(same ? 'saved' : 'dirty', same ? 'Шаблон загружен' : 'Несохраненные изменения');
+    }
     function defaultFields() {
       const values = emptyFields();
       values.city = normalize(prefs.defaults.city);
@@ -223,21 +234,30 @@
       window.__ACTS_RETENTION_DAYS__ = prefs.retentionDays;
     }
     function persistState() {
-      if (!prefs.storageEnabled) return;
+      if (!prefs.storageEnabled) return false;
       state.updatedAt = nowIso();
-      try { localStorage.setItem(DATA_KEY, JSON.stringify(state)); } catch (_) { toast('Не удалось сохранить рабочие данные.', 'error'); }
+      try { localStorage.setItem(DATA_KEY, JSON.stringify(state)); return true; } catch (_) { toast('Не удалось сохранить рабочие данные.', 'error'); return false; }
     }
     function saveCurrent(immediate = false) {
       clearTimeout(saveTimer);
       const run = () => {
         const draft = currentDraft();
         if (!draft) return;
-        draft.fields = api.snapshot();
-        draft.updatedAt = nowIso();
-        persistState();
-        renderDrafts();
+        workingDrafts.set(draft.id, sanitizedFields(api.snapshot()));
+        syncTemplateStatus();
       };
       if (immediate) run(); else saveTimer = setTimeout(run, 380);
+    }
+    function saveDraft() {
+      clearTimeout(saveTimer);
+      const draft = currentDraft();
+      if (!draft) return;
+      draft.fields = sanitizedFields(api.snapshot());
+      draft.updatedAt = nowIso();
+      workingDrafts.set(draft.id, draft.fields);
+      const persisted = persistState();
+      templateStatus(persisted ? 'saved' : 'idle', persisted ? 'Шаблон сохранен' : 'Только в этой вкладке');
+      toast(persisted ? `Шаблон «${draft.name}» сохранен.` : 'Шаблон сохранен только в этой вкладке: сохранение на компьютере отключено.', persisted ? undefined : 'warn');
     }
     function removeStoredData() {
       try {
@@ -484,6 +504,7 @@
         state.drafts.push(draft); state.activeDraftId = draft.id; restore(draft.fields);
       } else currentDraft().name = name;
       persistState(); renderDrafts(); closeNameModal();
+      syncTemplateStatus();
       toast(nameMode === 'new' ? 'Новый шаблон создан.' : 'Шаблон переименован.');
     }
     function deleteDraft() {
@@ -492,8 +513,9 @@
       if (!confirm(`Удалить шаблон «${draft.name}»?`)) return;
       const index = state.drafts.indexOf(draft);
       state.drafts.splice(index, 1);
+      workingDrafts.delete(draft.id);
       const next = state.drafts[Math.max(0, index - 1)];
-      state.activeDraftId = next.id; restore(next.fields); persistState(); renderDrafts();
+      state.activeDraftId = next.id; restore(currentWorkingFields(next)); persistState(); renderDrafts(); syncTemplateStatus();
       toast('Шаблон удален.', 'warn');
     }
     function switchDraft() {
@@ -501,7 +523,7 @@
       saveCurrent(true);
       const draft = state.drafts.find(item => item.id === targetId);
       if (!draft) return;
-      state.activeDraftId = draft.id; restore(draft.fields); persistState(); renderDrafts();
+      state.activeDraftId = draft.id; restore(currentWorkingFields(draft)); persistState(); renderDrafts(); syncTemplateStatus();
       toast(`Открыт шаблон «${draft.name}».`);
     }
     function repeatLast() {
@@ -534,7 +556,7 @@
       if (prefs.defaults.dateMode === 'today' && !values.actDate) { values.actDate = todayLocal(); applied = true; }
       if (applied) { restore(values); saveCurrent(true); }
       persistPrefs(); if (!applied) persistState(); renderPrivacy(); closeDefaults();
-      const message = applied ? 'Значения сохранены и применены к текущему шаблону.' : 'Значения сохранены для новых и очищенных шаблонов.';
+      const message = applied ? 'Значения применены к акту. Для шаблона нажмите «Сохранить шаблон».' : 'Значения сохранены для новых и очищенных шаблонов.';
       toast(prefs.storageEnabled ? message : `${message} Только в этой вкладке.`);
     }
     function toggleStorage() {
@@ -686,6 +708,7 @@
         data: {
           activeDraftId: state.activeDraftId,
           drafts: state.drafts,
+          currentAct: { draftId: state.activeDraftId, fields: sanitizedFields(api.snapshot()) },
           customerCards: state.customerCards,
           executorSignerCards: state.executorSignerCards,
           serviceTemplates: state.serviceTemplates,
@@ -698,7 +721,7 @@
       const url = URL.createObjectURL(blob), link = document.createElement('a');
       link.href = url; link.download = `Конструктор_актов_резервная_копия_${todayLocal()}.json`; link.rel = 'noopener';
       document.body.appendChild(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000);
-      toast('Резервная копия шаблонов и справочников скачана.');
+      toast('Резервная копия шаблонов, справочников и текущего акта скачана.');
     }
     function sanitizedFields(source) {
       const result = emptyFields();
@@ -744,11 +767,13 @@
       if (!sourceDrafts.length) throw new Error('В резервной копии отсутствуют шаблоны.');
       const drafts = sourceDrafts.map((draft, index) => ({ id: `restored-${index}-${Date.now().toString(36)}`, name: draft?.name === 'Основной черновик' ? 'Основной шаблон' : normalize(draft?.name).slice(0, 60) || `Шаблон ${index + 1}`, fields: sanitizedFields(draft?.fields), updatedAt: nowIso() }));
       const activeIndex = sourceDrafts.findIndex(draft => draft?.id === parsed.data.activeDraftId);
+      const workingIndex = sourceDrafts.findIndex(draft => draft?.id === parsed.data.currentAct?.draftId);
       const defaults = parsed.preferences?.defaults || {};
       const retentionRaw = parsed.preferences?.retentionDays;
       const retention = String(retentionRaw) === 'always' ? 'always' : Number(retentionRaw);
       return {
         prefs: { defaults: { city: normalize(defaults.city).slice(0, 100), servicePlace: normalize(defaults.servicePlace).slice(0, 180), dateMode: defaults.dateMode === 'today' ? 'today' : 'blank' }, retentionDays: retention === 'always' || [30, 183, 365].includes(retention) ? retention : prefs.retentionDays },
+        currentAct: parsed.data.currentAct?.fields && workingIndex >= 0 ? { draftId: drafts[workingIndex].id, fields: sanitizedFields(parsed.data.currentAct.fields) } : null,
         state: {
           version: 3, updatedAt: nowIso(), activeDraftId: drafts[Math.max(0, activeIndex)]?.id || drafts[0].id, drafts,
           customerCards: sanitizedCustomerCards(parsed.data.customerCards, drafts, parsed.data.signerCards),
@@ -765,7 +790,9 @@
         const restored = parseBackup(await file.text());
         if (!confirm('Восстановление заменит текущие шаблоны и сохраненные справочники. Продолжить?')) return;
         prefs.defaults = restored.prefs.defaults; prefs.retentionDays = restored.prefs.retentionDays; state = restored.state;
-        persistPrefs(); persistState(); renderDrafts(); renderLibraries(); renderPrivacy(); restore(currentDraft().fields); updateContractPlaceholder();
+        workingDrafts = new Map();
+        if (restored.currentAct) workingDrafts.set(restored.currentAct.draftId, restored.currentAct.fields);
+        persistPrefs(); persistState(); renderDrafts(); renderLibraries(); renderPrivacy(); restore(currentWorkingFields()); updateContractPlaceholder(); syncTemplateStatus();
         toast(prefs.storageEnabled ? 'Шаблоны, подписанты, услуги и настройки восстановлены.' : 'Данные восстановлены в этой вкладке. Включите сохранение, чтобы оставить их на компьютере.');
       } catch (error) {
         console.error(error); toast(error.message || 'Не удалось восстановить резервную копию.', 'error');
@@ -775,7 +802,7 @@
     renderDrafts(); renderLibraries(); bindLibraries(); bindExecutorPicker(); renderPrivacy(); renderTheme(); bindSettingsPickers(); updateContractPlaceholder();
     const selected = currentDraft();
     if (selected?.fields && JSON.stringify(selected.fields) !== JSON.stringify(api.snapshot())) restore(selected.fields);
-    persistPrefs(); persistState();
+    persistPrefs(); persistState(); syncTemplateStatus();
 
     form.addEventListener('input', () => saveCurrent());
     form.addEventListener('change', () => saveCurrent());
@@ -784,6 +811,7 @@
     draftSelect.addEventListener('change', switchDraft);
     document.getElementById('newDraftBtn').onclick = () => openNameModal('new');
     document.getElementById('renameDraftBtn').onclick = () => openNameModal('rename');
+    document.getElementById('saveDraftBtn').onclick = saveDraft;
     document.getElementById('deleteDraftBtn').onclick = deleteDraft;
     document.getElementById('repeatActBtn').onclick = repeatLast;
     document.getElementById('saveCustomerBtn').onclick = () => addCustomer();
@@ -823,7 +851,7 @@
     window.addEventListener('acts:restored', () => saveCurrent(true));
     window.addEventListener('acts:exported', event => {
       state.lastAct = { fields: event.detail.fields, exportedAt: nowIso() };
-      addCustomer(true); if (event.detail.fields.executor === 'rrPoa') addExecutorSigner(true); saveCurrent(true); renderLibraries();
+      addCustomer(true); if (event.detail.fields.executor === 'rrPoa') addExecutorSigner(true); saveCurrent(true); renderLibraries(); syncTemplateStatus();
     });
     document.addEventListener('keydown', event => {
       const nameModal = document.getElementById('draftNameModal'), defaultsModal = document.getElementById('defaultsModal');

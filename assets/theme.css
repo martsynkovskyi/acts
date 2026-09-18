@@ -47,6 +47,7 @@
 :root[data-theme="dark"] .footer-runtime[data-state="ready"],
 :root[data-theme="dark"] .preview-health[data-state="ok"],
 :root[data-theme="dark"] .field-feedback[data-state="ok"]{color:#77e1ab}
+:root[data-theme="dark"] .save-indicator[data-state="dirty"]{color:#ffd094}
 :root[data-theme="dark"] .field-customer-basis .case-hint{border-color:#5477a2;background:#263e5c;color:#e0edff;box-shadow:0 5px 12px rgba(0,0,0,.2)}
 :root[data-theme="dark"] .form-section{color:var(--ink);border-color:#35475f;background:#1d2d43}
 :root[data-theme="dark"] .section-heading strong,

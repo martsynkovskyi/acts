@@ -231,14 +231,15 @@ input[type=date]::-webkit-datetime-edit{min-width:0;overflow:hidden}
 .work-tools .draft-row{align-items:stretch}
 .draft-row .draft-select-field,.draft-row .compact-actions{height:36px}
 .draft-row .compact-actions{flex-wrap:nowrap;align-items:stretch}
+.save-indicator[data-state=dirty]{color:#946015}.save-indicator[data-state=dirty] .save-dot{background:#e4a044;box-shadow:0 0 0 3px rgba(228,160,68,.14)}
 .quick-actions .mini-button,.backup-actions .mini-button{height:auto;min-height:42px;padding:4px 8px;font-size:13px;line-height:1.2}
 .reuse-row .searchable-input,.reuse-row .library-actions .mini-button{height:36px;min-height:36px}
 @media(max-width:699px){
   .quick-actions .mini-button,.backup-actions .mini-button{min-height:42px;font-size:14px}
   .draft-row .executor-trigger,.draft-row .compact-actions .mini-button,
   .reuse-row .searchable-input,.reuse-row .library-actions .mini-button{height:42px;min-height:42px}
-  .draft-row .draft-select-field,.draft-row .compact-actions{height:42px}
-  .draft-row .compact-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+  .draft-row .draft-select-field{height:42px}
+  .draft-row .compact-actions{height:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 
 .field-customer-basis{position:relative}
