@@ -896,7 +896,7 @@ async function fill(page, data = validData) {
       if (!navigator.serviceWorker.controller) await new Promise(resolve => navigator.serviceWorker.addEventListener('controllerchange', resolve, { once: true }));
     });
     const caches = await page.evaluate(() => window.caches.keys());
-    assert.ok(caches.includes('acts-constructor-v3.1.0-20260918-r15'));
+    assert.ok(caches.includes('acts-constructor-v3.1.0-20260918-r16'));
     await context.setOffline(true);
     const offlinePage = await context.newPage();
     await offlinePage.goto(baseUrl, { waitUntil: 'domcontentloaded' });

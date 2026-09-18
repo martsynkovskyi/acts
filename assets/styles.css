@@ -269,7 +269,7 @@ input[type=date]::-webkit-datetime-edit{min-width:0;overflow:hidden}
 }
 .hero-copy{align-self:center}
 #previewStage{contain:size}
-@media(min-width:700px) and (max-width:767px){
+@media(min-width:700px) and (max-width:900px){
   .site-footer{grid-template-columns:minmax(0,1fr) auto;gap:6px 12px}
   .footer-version{grid-column:1;grid-row:1}
   .footer-install{grid-column:2;grid-row:1}
